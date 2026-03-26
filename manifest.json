@@ -45,7 +45,6 @@
         {
             "resources": [
                 "*.png",
-                "*.webp",
                 "*.jpg",
                 "*.svg"
             ],

@@ -15,17 +15,14 @@
     // Guard: if extension was reloaded, old content scripts lose context
     if (!chrome.runtime?.id) return;
 
-    // === DEFAULT BUNDLED IMAGE URLs ===
-    const DEFAULT_BG = chrome.runtime.getURL('bg.webp');
-    const DEFAULT_MSG = chrome.runtime.getURL('msg-bg.webp');
-
     // === ACTIVE STATE (will be updated from storage) ===
-    let BG_URL = DEFAULT_BG;
-    let SIDEBAR_BG = DEFAULT_MSG;
-    let INPUT_BG = DEFAULT_MSG;
-    let MSG_BG = DEFAULT_MSG;
+    let BG_URL = null;
+    let SIDEBAR_BG = null;
+    let INPUT_BG = null;
+    let MSG_BG = null;
     let BACKGROUNDS_ENABLED = true;
     let HIDE_UPGRADE = false;
+    let ZEN_MODE = false;
     let GLASS_INTENSITY = 0;   // 0-100
     let GLASS_BLUR = 24;
     let GLOW_INTENSITY = 0;    // 0-100
@@ -41,12 +38,13 @@
     function loadImagesFromStorage(callback) {
         chrome.storage.local.get(
             ['bg_custom', 'sidebar_custom', 'input_custom', 'msg_custom',
-                'backgrounds_enabled', 'hide_upgrade',
+                'backgrounds_enabled', 'hide_upgrade', 'zen_mode',
                 'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color',
                 'darkness_bg', 'darkness_sidebar', 'darkness_input', 'darkness_msg'],
             (data) => {
                 BACKGROUNDS_ENABLED = data.backgrounds_enabled !== false;
                 HIDE_UPGRADE = data.hide_upgrade === true;
+                ZEN_MODE = data.zen_mode === true;
                 GLASS_INTENSITY = data.glass_intensity ?? 0;
                 GLASS_BLUR = data.glass_blur ?? 24;
                 GLOW_INTENSITY = data.glow_intensity ?? 0;
@@ -59,10 +57,10 @@
                 DARKNESS_MSG = (data.darkness_msg ?? 60) / 100;
 
                 if (BACKGROUNDS_ENABLED) {
-                    BG_URL = data.bg_custom || DEFAULT_BG;
-                    SIDEBAR_BG = data.sidebar_custom || DEFAULT_MSG;
-                    INPUT_BG = data.input_custom || DEFAULT_MSG;
-                    MSG_BG = data.msg_custom || DEFAULT_MSG;
+                    BG_URL = data.bg_custom || null;
+                    SIDEBAR_BG = data.sidebar_custom || null;
+                    INPUT_BG = data.input_custom || null;
+                    MSG_BG = data.msg_custom || null;
                 } else {
                     BG_URL = null;
                     SIDEBAR_BG = null;
@@ -116,6 +114,7 @@
         document.body.classList.toggle('gemini-ext-glass', GLASS_INTENSITY > 0);
         document.body.classList.toggle('gemini-ext-glow', GLOW_INTENSITY > 0);
         document.body.classList.toggle('gemini-ext-hide-upgrade', HIDE_UPGRADE);
+        document.body.classList.toggle('gemini-zen-mode', ZEN_MODE);
         document.body.classList.toggle('gemini-ext-bg', !!BG_URL);
         document.body.classList.toggle('gemini-ext-sidebar-bg', !!SIDEBAR_BG);
         document.body.classList.toggle('gemini-ext-input-bg', !!INPUT_BG && GLASS_INTENSITY === 0);
@@ -134,6 +133,9 @@
         if (msg.type === 'REFRESH_BACKGROUNDS') {
             fullRefresh();
             sendResponse({ ok: true });
+        } else if (msg.type === 'TOGGLE_ZEN') {
+            document.body.classList.toggle('gemini-zen-mode');
+            sendResponse({ ok: true });
         }
     });
 
@@ -145,6 +147,7 @@
         // Re-apply on DOM mutations (Gemini SPA re-renders)
         waitForElement('bard-sidenav', () => {
             startObserver();
+            startLoadingObserver();
         });
     });
 
@@ -162,6 +165,24 @@
         initObserver.observe(document.body || document.documentElement, {
             childList: true, subtree: true
         });
+    }
+
+    // === MUTATION OBSERVER (Loading State) ===
+    function startLoadingObserver() {
+        const checkLoading = () => {
+            // Very simple heuristic: if a message is being streamed, add .is-loading to input
+            // Often Gemini disables the input or shows a stop button.
+            // Alternatively, if the chat container is completely empty.
+            if (!document.body) return;
+            const isStreaming = !!document.querySelector('model-response[is-generating]');
+            if (isStreaming) {
+                document.body.classList.add('is-loading');
+            } else {
+                document.body.classList.remove('is-loading');
+            }
+        };
+        
+        setInterval(checkLoading, 1000); // Poll for streaming status loosely
     }
 
     // === MUTATION OBSERVER (throttled) ===

@@ -13,6 +13,8 @@
 
     const toggleInput = document.getElementById('toggle-backgrounds');
     const toggleHideUpgrade = document.getElementById('toggle-hide-upgrade');
+    const toggleZenMode = document.getElementById('toggle-zen-mode');
+    
     // Glass & Glow elements
     const glassIntensity = document.getElementById('glass-intensity');
     const glassIntensityValue = document.getElementById('glass-intensity-value');
@@ -31,7 +33,7 @@
 
     // === LOAD STATE ===
     function loadState() {
-        chrome.storage.local.get([...KEYS, ...DARKNESS_KEYS, 'backgrounds_enabled', 'hide_upgrade',
+        chrome.storage.local.get([...KEYS, ...DARKNESS_KEYS, 'backgrounds_enabled', 'hide_upgrade', 'zen_mode',
             'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color'], (data) => {
             // Toggle
             const enabled = data.backgrounds_enabled !== false;
@@ -40,6 +42,9 @@
 
             // Hide Upgrade toggle
             toggleHideUpgrade.checked = data.hide_upgrade === true;
+
+            // Zen Mode toggle
+            toggleZenMode.checked = data.zen_mode === true;
 
             // Glass intensity (0-100)
             const gi = data.glass_intensity ?? 0;
@@ -222,6 +227,18 @@
         const hide = toggleHideUpgrade.checked;
         chrome.storage.local.set({ hide_upgrade: hide }, () => {
             refreshGeminiTabs();
+        });
+    });
+
+    // === ZEN MODE TOGGLE ===
+    toggleZenMode.addEventListener('change', () => {
+        const zen = toggleZenMode.checked;
+        chrome.storage.local.set({ zen_mode: zen }, () => {
+            chrome.tabs.query({ url: 'https://gemini.google.com/*' }, (tabs) => {
+                tabs.forEach(tab => {
+                    chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_ZEN' });
+                });
+            });
         });
     });
 

@@ -9,6 +9,11 @@
 
 :root {
     --font-main: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --mesh-1: #4f46e5; /* Indigo */
+    --mesh-2: #c026d3; /* Fuchsia */
+    --mesh-3: #0891b2; /* Cyan */
+    --spring-smooth: cubic-bezier(0.25, 0.1, 0.25, 1.0); /* Custom ease-out */
+    --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* Subtle bounce */
 }
 
 /* Override default Gemini fonts with tighter, modern typography */
@@ -40,11 +45,11 @@ body::before {
 }
 
 /* ================================
-   MESH GRADIENT — Fallback BG when no custom wallpaper
-   Multi-stop radial gradients for modern "blob" feel
+   DYNAMIC MESH GRADIENT — Default BG when no custom wallpaper
+   Animated CSS multiple radial gradients
    ================================ */
 body {
-    background-color: #0a0a0b !important;
+    background-color: #050505 !important;
 }
 
 body.gemini-ext-bg {
@@ -60,11 +65,41 @@ body.gemini-ext-bg {
     background-attachment: fixed !important;
 }
 
-body:not(.gemini-ext-bg) {
-    background-image:
-        radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
-        radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 0.1) 0, transparent 50%),
-        radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 0.1) 0, transparent 50%) !important;
+body:not(.gemini-ext-bg)::after {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    background: 
+        radial-gradient(circle at 15% 50%, var(--mesh-1), transparent 40%),
+        radial-gradient(circle at 85% 30%, var(--mesh-2), transparent 40%),
+        radial-gradient(circle at 50% 80%, var(--mesh-3), transparent 40%);
+    filter: blur(80px);
+    opacity: 0.25;
+    animation: mesh-drift 20s ease-in-out infinite alternate;
+    z-index: -1;
+    pointer-events: none;
+}
+
+@keyframes mesh-drift {
+    0% { transform: translate(-10%, -10%) scale(1); }
+    100% { transform: translate(10%, 10%) scale(1.1); }
+}
+
+/* ================================
+   SKELETON SHIMMER LOADING
+   Takes effect when element has `.is-loading` class
+   ================================ */
+.is-loading bard-sidenav, 
+.is-loading input-area-v2 {
+    background: linear-gradient(90deg, #1a1a1d 25%, #2a2a2e 50%, #1a1a1d 75%) !important;
+    background-size: 200% 100% !important;
+    animation: shimmer 1.5s infinite !important;
+    color: transparent !important;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
 body, html {
@@ -259,16 +294,16 @@ body.gemini-ext-input-bg input-area-v2 fieldset {
    ================================ */
 body.gemini-ext-glass input-area-v2,
 body.gemini-ext-glass input-area-v2[style] {
-    background: rgba(20, 20, 25, calc(var(--gemini-glass-opacity, 0.55) * 0.6)) !important;
+    background: rgba(10, 10, 12, calc(var(--gemini-glass-opacity, 0.55) * 0.9)) !important;
     background-image: none !important;
-    backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) !important;
+    backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
+    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 24px !important;
     box-shadow:
         0 4px 24px rgba(0, 0, 0, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease !important;
+    transition: border-color 0.4s var(--spring-smooth), box-shadow 0.4s var(--spring-smooth), background 0.4s var(--spring-smooth) !important;
     overflow: visible !important;
 }
 
@@ -281,8 +316,8 @@ body.gemini-ext-glass input-area-v2[style]:hover {
         inset 0 0 0 1px rgba(255, 255, 255, calc(var(--gemini-glass-opacity, 0.55) * 0.14)) !important;
 }
 
-body.gemini-ext-glass input-area-v2:focus-within,
-body.gemini-ext-glass input-area-v2[style]:focus-within {
+body.gemini-ext-glass input-area-v2:focus-within:not(:focus-visible),
+body.gemini-ext-glass input-area-v2[style]:focus-within:not(:focus-visible) {
     border-color: rgba(138, 180, 248, calc(var(--gemini-glass-opacity, 0.55) * 0.4)) !important;
     box-shadow:
         0 4px 24px rgba(0, 0, 0, 0.4),
@@ -330,17 +365,33 @@ body.gemini-ext-glow input-area-v2 p {
     caret-color: var(--gemini-glow-color, #a855f7) !important;
 }
 
-/* Ambient halo — activates on focus-within */
-body.gemini-ext-glow input-area-v2:focus-within {
+/* Ambient halo — activates on focus-within for normal usage */
+body.gemini-ext-glow input-area-v2:focus-within:not(:focus-visible) {
     box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.1),
         0 0 40px -10px var(--gemini-glow-color, #a855f7) !important;
-    transition: box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    transition: box-shadow 0.4s var(--spring-smooth) !important;
+}
+
+/* Accessibility & Focus Rings — Visible focus ring for keyboard nav */
+body.gemini-ext-glow input-area-v2:focus-visible,
+input-area-v2:focus-visible {
+    outline: 2px solid var(--gemini-glow-color, #a855f7) !important;
+    outline-offset: 2px !important;
+    box-shadow: 
+        0 0 0 4px rgba(0,0,0,0.5), /* Deep shadow to separate from BG */
+        0 0 40px -10px var(--gemini-glow-color, #a855f7) !important;
+    transition: box-shadow 0.4s var(--spring-smooth), outline 0.1s ease !important;
+}
+
+/* Remove outline for mouse users to keep it clean */
+input-area-v2:focus:not(:focus-visible) {
+    outline: none !important;
 }
 
 /* Idle state — smooth transition out */
 body.gemini-ext-glow input-area-v2 {
-    transition: box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    transition: box-shadow 0.4s var(--spring-smooth) !important;
 }
 
 /* ================================
@@ -368,6 +419,16 @@ body.gemini-ext-msg-bg .user-query-bubble-with-background .query-text {
 /* ================================
    TOOLBAR BUTTONS — +, Tools, Mic, Send
    ================================ */
+.input-buttons-wrapper button,
+.input-buttons-wrapper-v2 button,
+.trailing-actions-wrapper button,
+.leading-actions-wrapper button,
+.action-wrapper button,
+input-container .mat-mdc-icon-button,
+input-container .mdc-icon-button {
+    transition: transform 0.4s var(--spring-smooth), background 0.2s ease !important;
+}
+
 .input-buttons-wrapper button:hover,
 .input-buttons-wrapper-v2 button:hover,
 .trailing-actions-wrapper button:hover,
@@ -386,6 +447,7 @@ input-container .mdc-icon-button:hover {
 input-container .mat-mdc-icon-button:active,
 input-container .mdc-icon-button:active {
     background: #1C1C21 !important;
+    transform: scale(0.92) !important;
 }
 
 /* ================================
@@ -522,7 +584,7 @@ input-container .mat-mdc-chip:hover,
     font-weight: 400 !important;
     letter-spacing: 0.3px !important;
     color: rgba(255, 255, 255, 0.7) !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: transform 0.4s var(--spring-smooth), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
     box-shadow: none !important;
@@ -541,7 +603,7 @@ input-container .mat-mdc-chip:hover,
 
 .card.card-zero-state:active {
     background: #1C1C21 !important;
-    transform: translateY(0) !important;
+    transform: scale(0.96) translateY(0) !important;
     box-shadow: none !important;
 }
 
@@ -757,4 +819,21 @@ body.gemini-ext-hide-upgrade [data-test-id="bard-upsell-menu-button-icon"],
 body.gemini-ext-hide-upgrade .dynamic-upsell-label,
 body.gemini-ext-hide-upgrade button[aria-label][jslog*="246609"] {
     display: none !important;
+}
+
+/* ================================
+   ZEN MODE
+   Hide everything but the conversation + input
+   ================================ */
+body.gemini-zen-mode bard-sidenav,
+body.gemini-zen-mode .top-bar,
+body.gemini-zen-mode location-footer,
+body.gemini-zen-mode header {
+    display: none !important;
+}
+
+body.gemini-zen-mode .conversation-container {
+    margin: 0 auto !important;
+    max-width: 800px !important;
+    padding-top: 4vh !important;
 }
