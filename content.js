@@ -28,6 +28,13 @@
     let GLOW_INTENSITY = 0;    // 0-100
     let GLOW_COLOR = '#a855f7';
 
+    // === GRADIENT BACKGROUND ===
+    let GRADIENT_PRESET = 'purple-haze';
+    let GRADIENT_ANGLE = 135;
+    let GRADIENT_INTENSITY = 100;
+    let GRADIENT_COLOR_FROM = '#667eea';
+    let GRADIENT_COLOR_TO = '#764ba2';
+
     // === PER-ZONE DARKNESS (0.0 – 0.8) ===
     let DARKNESS_BG = 0.6;
     let DARKNESS_SIDEBAR = 0.6;
@@ -40,7 +47,8 @@
             ['bg_custom', 'sidebar_custom', 'input_custom', 'msg_custom',
                 'backgrounds_enabled', 'hide_upgrade', 'zen_mode',
                 'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color',
-                'darkness_bg', 'darkness_sidebar', 'darkness_input', 'darkness_msg'],
+                'darkness_bg', 'darkness_sidebar', 'darkness_input', 'darkness_msg',
+                'gradient_preset', 'gradient_angle', 'gradient_intensity', 'gradient_color_from', 'gradient_color_to'],
             (data) => {
                 BACKGROUNDS_ENABLED = data.backgrounds_enabled !== false;
                 HIDE_UPGRADE = data.hide_upgrade === true;
@@ -49,6 +57,13 @@
                 GLASS_BLUR = data.glass_blur ?? 24;
                 GLOW_INTENSITY = data.glow_intensity ?? 0;
                 GLOW_COLOR = data.glow_color ?? '#a855f7';
+
+                // Gradient Background
+                GRADIENT_PRESET = data.gradient_preset ?? 'purple-haze';
+                GRADIENT_ANGLE = data.gradient_angle ?? 135;
+                GRADIENT_INTENSITY = data.gradient_intensity ?? 100;
+                GRADIENT_COLOR_FROM = data.gradient_color_from ?? '#667eea';
+                GRADIENT_COLOR_TO = data.gradient_color_to ?? '#764ba2';
 
                 // Per-zone darkness
                 DARKNESS_BG = (data.darkness_bg ?? 60) / 100;
@@ -85,6 +100,12 @@
 
         const glassOpacity = (GLASS_INTENSITY / 100) * 0.7;
         const glassBlur = (GLASS_INTENSITY / 100) * GLASS_BLUR;
+        
+        // Build gradient CSS
+        let gradientCSS = 'none';
+        if (GRADIENT_PRESET !== 'none' && GRADIENT_INTENSITY > 0) {
+            gradientCSS = `linear-gradient(${GRADIENT_ANGLE}deg, ${GRADIENT_COLOR_FROM}, ${GRADIENT_COLOR_TO})`;
+        }
 
         style.textContent = `
             :root {
@@ -100,6 +121,8 @@
                 --gemini-sidebar-bg: ${SIDEBAR_BG ? `url("${SIDEBAR_BG}")` : 'none'};
                 --gemini-input-bg: ${INPUT_BG ? `url("${INPUT_BG}")` : 'none'};
                 --gemini-msg-bg: ${MSG_BG ? `url("${MSG_BG}")` : 'none'};
+                --gemini-gradient-bg: ${gradientCSS};
+                --gemini-gradient-intensity: ${GRADIENT_INTENSITY / 100};
             }
         `;
     }
@@ -119,6 +142,7 @@
         document.body.classList.toggle('gemini-ext-sidebar-bg', !!SIDEBAR_BG);
         document.body.classList.toggle('gemini-ext-input-bg', !!INPUT_BG && GLASS_INTENSITY === 0);
         document.body.classList.toggle('gemini-ext-msg-bg', !!MSG_BG);
+        document.body.classList.toggle('gemini-ext-gradient', GRADIENT_PRESET !== 'none' && GRADIENT_INTENSITY > 0);
     }
 
     // === FULL REFRESH ===

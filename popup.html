@@ -85,6 +85,70 @@
             </div>
         </div>
 
+        <!-- Gradient Background Section -->
+        <div class="fx-section">
+            <div class="fx-section-title">Gradient Backgrounds</div>
+
+            <div class="gradient-select-row">
+                <span class="fx-label">Preset</span>
+                <div class="gradient-presets" id="gradient-presets">
+                    <button class="gradient-preset" data-gradient="none" title="None">
+                        <span class="gradient-preview gradient-none"></span>
+                    </button>
+                    <button class="gradient-preset" data-gradient="sunset" title="Sunset">
+                        <span class="gradient-preview gradient-sunset"></span>
+                    </button>
+                    <button class="gradient-preset" data-gradient="ocean" title="Ocean">
+                        <span class="gradient-preview gradient-ocean"></span>
+                    </button>
+                    <button class="gradient-preset" data-gradient="forest" title="Forest">
+                        <span class="gradient-preview gradient-forest"></span>
+                    </button>
+                    <button class="gradient-preset" data-gradient="purple-haze" title="Purple Haze">
+                        <span class="gradient-preview gradient-purple-haze"></span>
+                    </button>
+                    <button class="gradient-preset" data-gradient="midnight" title="Midnight">
+                        <span class="gradient-preview gradient-midnight"></span>
+                    </button>
+                    <button class="gradient-preset" data-gradient="fire" title="Fire">
+                        <span class="gradient-preview gradient-fire"></span>
+                    </button>
+                    <button class="gradient-preset" data-gradient="rainbow" title="Rainbow">
+                        <span class="gradient-preview gradient-rainbow"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="gradient-controls-row" id="gradient-controls-row">
+                <div class="gradient-control-group">
+                    <span class="gradient-control-label">Angle</span>
+                    <input type="range" id="gradient-angle" min="0" max="360" value="135" step="15">
+                    <span class="gradient-control-value" id="gradient-angle-value">135°</span>
+                </div>
+
+                <div class="gradient-control-group">
+                    <span class="gradient-control-label">Intensity</span>
+                    <input type="range" id="gradient-intensity" min="0" max="100" value="100" step="5">
+                    <span class="gradient-control-value" id="gradient-intensity-value">100%</span>
+                </div>
+            </div>
+
+            <div class="fx-color-row" id="gradient-custom-colors">
+                <span class="fx-label">Colors</span>
+                <div class="gradient-color-inputs">
+                    <div class="color-input-group">
+                        <label class="color-input-label">From</label>
+                        <input type="color" id="gradient-color-from" value="#667eea" class="color-custom" title="Start color">
+                    </div>
+                    <div class="color-input-group">
+                        <label class="color-input-label">To</label>
+                        <input type="color" id="gradient-color-to" value="#764ba2" class="color-custom" title="End color">
+                    </div>
+                </div>
+                <button class="btn-apply-gradient" id="btn-apply-custom-gradient" title="Apply custom gradient">Apply</button>
+            </div>
+        </div>
+
         <!-- Drop Zones with individual darkness sliders -->
         <div class="zones-container" id="zones-container">
 

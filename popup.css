@@ -457,3 +457,174 @@ input[type="range"]::-webkit-slider-thumb:hover {
     font-size: 10px;
     color: #27272a;
 }
+
+/* === GRADIENT BACKGROUNDS SECTION === */
+.gradient-select-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 2px;
+}
+
+.gradient-presets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    flex: 1;
+}
+
+.gradient-preset {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    outline: none;
+    transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    background: #1a1a1e;
+    overflow: hidden;
+}
+
+.gradient-preset:hover {
+    transform: scale(1.08);
+}
+
+.gradient-preset.active {
+    border-color: #3b82f6;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
+.gradient-preview {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+}
+
+/* Gradient Preview Styles */
+.gradient-none {
+    background: linear-gradient(135deg, #27272a, #18181b);
+}
+
+.gradient-sunset {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.gradient-ocean {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.gradient-forest {
+    background: linear-gradient(135deg, #d4fc79, #96e6a1);
+}
+
+.gradient-purple-haze {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.gradient-midnight {
+    background: linear-gradient(135deg, #2c3e50, #4ca1af);
+}
+
+.gradient-fire {
+    background: linear-gradient(135deg, #f12711, #f5af19);
+}
+
+.gradient-rainbow {
+    background: linear-gradient(135deg, #ff9a9e, #fecfef, #a1c4fd);
+}
+
+/* Gradient Controls Row */
+.gradient-controls-row {
+    display: flex;
+    gap: 12px;
+    padding: 6px 2px;
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.gradient-controls-row.disabled {
+    opacity: 0.25;
+    pointer-events: none;
+    filter: grayscale(1);
+}
+
+.gradient-control-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+.gradient-control-label {
+    font-size: 9px;
+    font-weight: 500;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+    width: 42px;
+}
+
+.gradient-control-value {
+    font-size: 9px;
+    font-weight: 600;
+    color: #3b82f6;
+    min-width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.gradient-control-group input[type="range"] {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Gradient Custom Colors Row */
+#gradient-custom-colors {
+    padding: 4px 2px;
+}
+
+.gradient-color-inputs {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+}
+
+.color-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.color-input-label {
+    font-size: 8px;
+    font-weight: 500;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.btn-apply-gradient {
+    align-self: flex-end;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-apply-gradient:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-apply-gradient:active {
+    transform: translateY(0);
+}

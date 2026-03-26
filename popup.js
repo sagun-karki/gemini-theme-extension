@@ -28,13 +28,25 @@
     const glowColorCustom = document.getElementById('glow-color-custom');
     const zonesContainer = document.getElementById('zones-container');
 
+    // Gradient Background elements
+    const gradientPresets = document.getElementById('gradient-presets');
+    const gradientControlsRow = document.getElementById('gradient-controls-row');
+    const gradientAngle = document.getElementById('gradient-angle');
+    const gradientAngleValue = document.getElementById('gradient-angle-value');
+    const gradientIntensity = document.getElementById('gradient-intensity');
+    const gradientIntensityValue = document.getElementById('gradient-intensity-value');
+    const gradientColorFrom = document.getElementById('gradient-color-from');
+    const gradientColorTo = document.getElementById('gradient-color-to');
+    const btnApplyCustomGradient = document.getElementById('btn-apply-custom-gradient');
+
     // All per-zone darkness sliders
     const darknessSliders = document.querySelectorAll('.darkness-slider');
 
     // === LOAD STATE ===
     function loadState() {
         chrome.storage.local.get([...KEYS, ...DARKNESS_KEYS, 'backgrounds_enabled', 'hide_upgrade', 'zen_mode',
-            'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color'], (data) => {
+            'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color',
+            'gradient_preset', 'gradient_angle', 'gradient_intensity', 'gradient_color_from', 'gradient_color_to'], (data) => {
             // Toggle
             const enabled = data.backgrounds_enabled !== false;
             toggleInput.checked = enabled;
@@ -65,6 +77,26 @@
             const glowC = data.glow_color ?? '#a855f7';
             glowColorCustom.value = glowC;
             setActivePreset(glowC);
+
+            // Gradient Background
+            const gradientPreset = data.gradient_preset ?? 'purple-haze';
+            setActiveGradientPreset(gradientPreset);
+
+            const gradAngle = data.gradient_angle ?? 135;
+            gradientAngle.value = gradAngle;
+            gradientAngleValue.textContent = gradAngle + '°';
+
+            const gradIntensity = data.gradient_intensity ?? 100;
+            gradientIntensity.value = gradIntensity;
+            gradientIntensityValue.textContent = gradIntensity + '%';
+
+            const gradColorFrom = data.gradient_color_from ?? '#667eea';
+            gradientColorFrom.value = gradColorFrom;
+
+            const gradColorTo = data.gradient_color_to ?? '#764ba2';
+            gradientColorTo.value = gradColorTo;
+
+            updateGradientControlsState(gradientPreset !== 'none');
 
             // Per-zone darkness sliders
             darknessSliders.forEach(slider => {
@@ -97,6 +129,38 @@
         } else {
             glowColorRow.classList.add('disabled');
         }
+    }
+
+    function updateGradientControlsState(enabled) {
+        if (enabled) {
+            gradientControlsRow.classList.remove('disabled');
+        } else {
+            gradientControlsRow.classList.add('disabled');
+        }
+    }
+
+    function setActiveGradientPreset(presetName) {
+        gradientPresets.querySelectorAll('.gradient-preset').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.gradient === presetName);
+        });
+    }
+
+    // Gradient presets configuration
+    const GRADIENT_PRESETS = {
+        'none': { from: '#27272a', to: '#18181b' },
+        'sunset': { from: '#f093fb', to: '#f5576c' },
+        'ocean': { from: '#4facfe', to: '#00f2fe' },
+        'forest': { from: '#d4fc79', to: '#96e6a1' },
+        'purple-haze': { from: '#667eea', to: '#764ba2' },
+        'midnight': { from: '#2c3e50', to: '#4ca1af' },
+        'fire': { from: '#f12711', to: '#f5af19' },
+        'rainbow': { from: '#ff9a9e', to: '#fecfef' }
+    };
+
+    function getGradientCSS(from, to, angle, intensity) {
+        if (intensity === 0) return null;
+        const opacity = intensity / 100;
+        return `linear-gradient(${angle}deg, ${from}, ${to})`;
     }
 
     function setActivePreset(color) {
@@ -315,6 +379,69 @@
             chrome.storage.local.set({ [key]: val }, () => {
                 refreshGeminiTabs();
             });
+        });
+    });
+
+    // === GRADIENT PRESET SELECTION ===
+    gradientPresets.querySelectorAll('.gradient-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const presetName = btn.dataset.gradient;
+            setActiveGradientPreset(presetName);
+
+            const preset = GRADIENT_PRESETS[presetName];
+            if (preset) {
+                gradientColorFrom.value = preset.from;
+                gradientColorTo.value = preset.to;
+            }
+
+            updateGradientControlsState(presetName !== 'none');
+
+            chrome.storage.local.set({
+                gradient_preset: presetName,
+                gradient_color_from: preset.from,
+                gradient_color_to: preset.to
+            }, () => {
+                refreshGeminiTabs();
+            });
+        });
+    });
+
+    // === GRADIENT ANGLE SLIDER ===
+    gradientAngle.addEventListener('input', () => {
+        gradientAngleValue.textContent = parseInt(gradientAngle.value) + '°';
+    });
+
+    gradientAngle.addEventListener('change', () => {
+        const val = parseInt(gradientAngle.value);
+        chrome.storage.local.set({ gradient_angle: val }, () => {
+            refreshGeminiTabs();
+        });
+    });
+
+    // === GRADIENT INTENSITY SLIDER ===
+    gradientIntensity.addEventListener('input', () => {
+        gradientIntensityValue.textContent = parseInt(gradientIntensity.value) + '%';
+    });
+
+    gradientIntensity.addEventListener('change', () => {
+        const val = parseInt(gradientIntensity.value);
+        chrome.storage.local.set({ gradient_intensity: val }, () => {
+            refreshGeminiTabs();
+        });
+    });
+
+    // === APPLY CUSTOM GRADIENT BUTTON ===
+    btnApplyCustomGradient.addEventListener('click', () => {
+        const from = gradientColorFrom.value;
+        const to = gradientColorTo.value;
+        
+        chrome.storage.local.set({
+            gradient_preset: 'custom',
+            gradient_color_from: from,
+            gradient_color_to: to
+        }, () => {
+            setActiveGradientPreset('custom');
+            refreshGeminiTabs();
         });
     });
 
