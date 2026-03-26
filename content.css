@@ -1,7 +1,76 @@
 /* =============================================================================
-   Gemini UI Redesign — Floating Sidebar Only
-   Right side completely untouched / default Gemini
+   Gemini UI Redesign — Content CSS v0.3.0
+   Modern Premium SaaS Aesthetic
+   All dynamic values via CSS Custom Properties (--gemini-*)
    ============================================================================= */
+
+/* === TYPOGRAPHY: Inter Variable Font === */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap');
+
+:root {
+    --font-main: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+/* Override default Gemini fonts with tighter, modern typography */
+body {
+    font-family: var(--font-main) !important;
+    letter-spacing: -0.01em !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.title, .headline {
+    letter-spacing: -0.02em !important;
+    font-feature-settings: "ss01", "ss02" !important;
+}
+
+/* ================================
+   NOISE TEXTURE OVERLAY
+   Prevents color banding on dark gradients. Film-grain feel.
+   ================================ */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 99999;
+    mix-blend-mode: overlay;
+}
+
+/* ================================
+   MESH GRADIENT — Fallback BG when no custom wallpaper
+   Multi-stop radial gradients for modern "blob" feel
+   ================================ */
+body {
+    background-color: #0a0a0b !important;
+}
+
+body.gemini-ext-bg {
+    background-image:
+        linear-gradient(
+            rgba(0,0,0, var(--gemini-darkness-bg, 0.6)),
+            rgba(0,0,0, var(--gemini-darkness-bg, 0.6))
+        ),
+        var(--gemini-bg-url, none) !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+}
+
+body:not(.gemini-ext-bg) {
+    background-image:
+        radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+        radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 0.1) 0, transparent 50%),
+        radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 0.1) 0, transparent 50%) !important;
+}
+
+body, html {
+    border: none !important;
+    box-shadow: none !important;
+}
 
 /* ================================
    FLOATING SIDEBAR
@@ -24,18 +93,35 @@ bard-sidenav[style] {
     overflow: hidden !important;
 }
 
-/* Inner content inherits rounded corners */
+/* Sidebar background image via CSS var */
+body.gemini-ext-sidebar-bg bard-sidenav,
+body.gemini-ext-sidebar-bg bard-sidenav[style] {
+    background-image:
+        linear-gradient(
+            rgba(0,0,0, var(--gemini-darkness-sidebar, 0.6)),
+            rgba(0,0,0, var(--gemini-darkness-sidebar, 0.6))
+        ),
+        var(--gemini-sidebar-bg, none) !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-color: transparent !important;
+    box-shadow:
+        0 2px 16px rgba(0, 0, 0, 0.3),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Inner content inherits rounded corners + breathing room */
 side-navigation-content {
     border-radius: 16px !important;
     background: transparent !important;
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    padding: 4px 4px !important;
 }
 
-/* Kill gradient fade strips at top/bottom of sidebar scroll area.
-   IMPORTANT: only target specific containers, NOT * wildcards,
-   because mat-icon and google-symbols use ::before/::after for icons. */
+/* Kill gradient fade strips at top/bottom of sidebar scroll area */
 bard-sidenav::after,
 bard-sidenav::before,
 side-navigation-content::after,
@@ -76,9 +162,7 @@ bard-sidenav-content {
     outline: none !important;
 }
 
-/* Content area background — transparent for bg image
-   IMPORTANT: we set a dark fallback color so Canvas split-view
-   doesn't expose a white/broken background behind the chat pane. */
+/* Content area background — transparent for bg image */
 mat-sidenav-content,
 bard-sidenav-content,
 .mat-drawer-content,
@@ -89,14 +173,17 @@ mat-sidenav-container {
     background-image: none !important;
 }
 
-body,
-html {
-    border: none !important;
-    box-shadow: none !important;
+/* ================================
+   BENTO / FLOATING CARD — Chat area
+   Makes the interface feel like an app floating over a desktop
+   ================================ */
+.conversation-container {
+    margin: 16px !important;
+    border-radius: 24px !important;
+    background: transparent !important;
+    background-color: transparent !important;
 }
 
-/* Main chat area transparent — let the body wallpaper show through */
-.conversation-container,
 .zero-state-container,
 .chat-window,
 .chat-container,
@@ -136,40 +223,72 @@ input-container {
 }
 
 /* ================================
-   INPUT FIELD — Glassmorphism (intensity-based)
-   Uses --glass-opacity and --glass-blur CSS variables
-   When active: REAL transparency + backdrop-filter blur
+   INPUT FIELD — Background image via CSS var
+   ================================ */
+body.gemini-ext-input-bg input-area-v2,
+body.gemini-ext-input-bg input-area-v2[style] {
+    background-image:
+        linear-gradient(
+            rgba(0,0,0, var(--gemini-darkness-input, 0.6)),
+            rgba(0,0,0, var(--gemini-darkness-input, 0.6))
+        ),
+        var(--gemini-input-bg, none) !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-color: transparent !important;
+    overflow: hidden !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+    transition: box-shadow 0.3s ease !important;
+}
+
+body.gemini-ext-input-bg input-area-v2:hover,
+body.gemini-ext-input-bg input-area-v2[style]:hover {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18) !important;
+}
+
+body.gemini-ext-input-bg input-area-v2 fieldset {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* ================================
+   GLASSMORPHISM — Deep Glass (intensity-based)
+   Uses --gemini-glass-opacity and --gemini-glass-blur CSS vars
+   Higher saturate + top highlight for modern depth
    ================================ */
 body.gemini-ext-glass input-area-v2,
 body.gemini-ext-glass input-area-v2[style] {
-    background: rgba(18, 18, 22, var(--glass-opacity, 0.55)) !important;
+    background: rgba(20, 20, 25, calc(var(--gemini-glass-opacity, 0.55) * 0.6)) !important;
     background-image: none !important;
-    backdrop-filter: blur(var(--glass-blur, 24px)) saturate(1.4) !important;
-    -webkit-backdrop-filter: blur(var(--glass-blur, 24px)) saturate(1.4) !important;
-    border: 1px solid rgba(255, 255, 255, calc(var(--glass-opacity, 0.55) * 0.18)) !important;
+    backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 24px !important;
     box-shadow:
-        0 4px 24px rgba(0, 0, 0, 0.25),
-        inset 0 0 0 1px rgba(255, 255, 255, calc(var(--glass-opacity, 0.55) * 0.08)) !important;
+        0 4px 24px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease !important;
     overflow: visible !important;
 }
 
 body.gemini-ext-glass input-area-v2:hover,
 body.gemini-ext-glass input-area-v2[style]:hover {
-    border-color: rgba(255, 255, 255, calc(var(--glass-opacity, 0.55) * 0.3)) !important;
+    border-color: rgba(255, 255, 255, calc(var(--gemini-glass-opacity, 0.55) * 0.3)) !important;
     box-shadow:
-        0 4px 24px rgba(0, 0, 0, 0.3),
-        inset 0 0 0 1px rgba(255, 255, 255, calc(var(--glass-opacity, 0.55) * 0.14)) !important;
+        0 4px 24px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 0 0 1px rgba(255, 255, 255, calc(var(--gemini-glass-opacity, 0.55) * 0.14)) !important;
 }
 
 body.gemini-ext-glass input-area-v2:focus-within,
 body.gemini-ext-glass input-area-v2[style]:focus-within {
-    border-color: rgba(138, 180, 248, calc(var(--glass-opacity, 0.55) * 0.4)) !important;
+    border-color: rgba(138, 180, 248, calc(var(--gemini-glass-opacity, 0.55) * 0.4)) !important;
     box-shadow:
-        0 4px 24px rgba(0, 0, 0, 0.3),
-        0 0 20px rgba(138, 180, 248, calc(var(--glass-opacity, 0.55) * 0.08)),
-        inset 0 0 0 1px rgba(138, 180, 248, calc(var(--glass-opacity, 0.55) * 0.12)) !important;
+        0 4px 24px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(138, 180, 248, calc(var(--gemini-glass-opacity, 0.55) * 0.08)),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 0 0 1px rgba(138, 180, 248, calc(var(--gemini-glass-opacity, 0.55) * 0.12)) !important;
 }
 
 /* Force ALL internal elements transparent so glass + blur shows through */
@@ -195,12 +314,11 @@ body.gemini-ext-glass input-area-v2 .mdc-text-field--no-label {
 }
 
 /* ================================
-   INPUT GLOW — Caret-tracking vertical light beam
-   Narrow beam that streams downward from the caret
+   AMBIENT FOCUS GLOW — CSS-only
+   Subtle halo around input on focus. No JS caret tracking needed.
    ================================ */
 body.gemini-ext-glow input-area-v2 {
     position: relative !important;
-    overflow: visible !important;
 }
 
 /* Color the blinking typing cursor */
@@ -209,41 +327,46 @@ body.gemini-ext-glow input-area-v2 [contenteditable],
 body.gemini-ext-glow input-area-v2 rich-textarea,
 body.gemini-ext-glow input-area-v2 textarea,
 body.gemini-ext-glow input-area-v2 p {
-    caret-color: var(--glow-color, #a855f7) !important;
+    caret-color: var(--gemini-glow-color, #a855f7) !important;
 }
 
-/* Thin light ray — docked to caret, extends downward from cursor */
-.gemini-glow-cursor {
-    position: absolute;
-    width: 3px;
-    height: 35px;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    z-index: 9999;
-    background: linear-gradient(
-        to bottom,
-        white 0%,
-        var(--glow-color, #a855f7) 10%,
-        var(--glow-color, #a855f7) 35%,
-        transparent 100%
-    );
-    opacity: 0;
-    filter: blur(4px);
-    transition: left 0.06s linear, top 0.06s linear, opacity 0.25s ease;
-    transform: translateX(-50%);
-    display: none;
+/* Ambient halo — activates on focus-within */
+body.gemini-ext-glow input-area-v2:focus-within {
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        0 0 40px -10px var(--gemini-glow-color, #a855f7) !important;
+    transition: box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
 }
 
-/* Only show beam when input is focused AND glow has been positioned */
-input-area-v2:focus-within .gemini-glow-cursor.active {
-    display: block;
-    opacity: var(--glow-intensity, 0.5);
+/* Idle state — smooth transition out */
+body.gemini-ext-glow input-area-v2 {
+    transition: box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+/* ================================
+   USER MESSAGE BUBBLES — via CSS var
+   ================================ */
+body.gemini-ext-msg-bg .user-query-bubble-with-background {
+    background-image:
+        linear-gradient(
+            rgba(0,0,0, var(--gemini-darkness-msg, 0.6)),
+            rgba(0,0,0, var(--gemini-darkness-msg, 0.6))
+        ),
+        var(--gemini-msg-bg, none) !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-color: transparent !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+}
+
+body.gemini-ext-msg-bg .user-query-bubble-with-background .query-content,
+body.gemini-ext-msg-bg .user-query-bubble-with-background .query-text {
+    background: transparent !important;
 }
 
 /* ================================
    TOOLBAR BUTTONS — +, Tools, Mic, Send
-   #1C1C21 on hover/active
    ================================ */
 .input-buttons-wrapper button:hover,
 .input-buttons-wrapper-v2 button:hover,
@@ -275,7 +398,6 @@ input-container .mat-mdc-chip:hover,
 
 /* ================================
    ALL 3 DROPDOWNS — Model, Tools, Plus
-   Color: #1C1C21
    ================================ */
 
 /* Model selector dropdown */
@@ -306,7 +428,6 @@ input-container .mat-mdc-chip:hover,
 
 /* ================================
    DROPDOWN ITEM HOVER — all 3 menus
-   Subtle fade, full-width, no corners
    ================================ */
 
 /* Model selector menu items */
@@ -378,7 +499,7 @@ input-container .mat-mdc-chip:hover,
     display: none !important;
 }
 
-/* Ensure inner list has no extra padding that blocks edge-to-edge */
+/* Ensure inner list has no extra padding */
 .toolbox-drawer-card .mat-mdc-action-list,
 .toolbox-drawer-card mat-action-list {
     padding: 4px 0 !important;
@@ -389,13 +510,12 @@ input-container .mat-mdc-chip:hover,
 }
 
 /* ================================
-   SUGGESTION CHIPS — modern premium redesign
+   SUGGESTION CHIPS — Modern premium redesign
+   Invisible border → lift + border on hover
    ================================ */
-
-/* Chip buttons */
 .card.card-zero-state {
-    background: rgba(28, 28, 33, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid transparent !important;
     border-radius: 999px !important;
     padding: 8px 18px !important;
     font-size: 12px !important;
@@ -403,8 +523,8 @@ input-container .mat-mdc-chip:hover,
     letter-spacing: 0.3px !important;
     color: rgba(255, 255, 255, 0.7) !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
     box-shadow: none !important;
     min-height: unset !important;
     height: auto !important;
@@ -412,11 +532,11 @@ input-container .mat-mdc-chip:hover,
 }
 
 .card.card-zero-state:hover {
-    background: rgba(28, 28, 33, 0.85) !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
     color: rgba(255, 255, 255, 0.95) !important;
-    box-shadow: 0 0 16px rgba(138, 180, 248, 0.08) !important;
-    transform: translateY(-1px) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
 }
 
 .card.card-zero-state:active {
@@ -516,11 +636,7 @@ bard-sidenav ::-webkit-scrollbar-thumb:hover {
 
 /* ============================================================
    CANVAS / IMMERSIVE PANEL (right side)
-   Real DOM: immersive-panel > code-immersive-panel > toolbar
-   Also supports artifact-view for non-code Canvas modes
    ============================================================ */
-
-/* Outer Canvas panel wrapper */
 immersive-panel {
     background: #0f0f12 !important;
     background-color: #0f0f12 !important;
@@ -528,7 +644,6 @@ immersive-panel {
     box-shadow: -8px 0 24px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* Inner code panel */
 code-immersive-panel {
     background: #0f0f12 !important;
     background-color: #0f0f12 !important;
@@ -538,7 +653,7 @@ code-immersive-panel > .container {
     background: #0f0f12 !important;
 }
 
-/* Toolbar header (Code / Preview toggle + Share + Close) */
+/* Toolbar header */
 code-immersive-panel toolbar,
 code-immersive-panel toolbar .toolbar {
     background: #0f0f12 !important;
@@ -546,12 +661,11 @@ code-immersive-panel toolbar .toolbar {
     border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
-/* Title text */
 code-immersive-panel toolbar .title-text {
     color: #d4d4d8 !important;
 }
 
-/* Code / Preview toggle (mat-button-toggle-group) */
+/* Code / Preview toggle */
 code-immersive-panel .tab-group {
     background: #1a1a1d !important;
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
@@ -590,7 +704,7 @@ code-immersive-panel console .container {
     border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
-/* Floating toolbar (magic wand, select) */
+/* Floating toolbar */
 code-immersive-panel floating-toolbar .container {
     background: #1a1a1d !important;
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
@@ -598,7 +712,7 @@ code-immersive-panel floating-toolbar .container {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* Toolbar icon buttons (Close, Refresh, Share, etc.) */
+/* Toolbar icon buttons */
 code-immersive-panel toolbar .icon-button {
     color: #71717a !important;
     background: transparent !important;
@@ -623,7 +737,7 @@ code-immersive-panel .share-button:hover {
     background: rgba(59, 130, 246, 0.25) !important;
 }
 
-/* Immersive entry chip (in chat, links to canvas) */
+/* Immersive entry chip */
 immersive-entry-chip .container {
     background: rgba(28, 28, 33, 0.6) !important;
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
@@ -637,8 +751,6 @@ immersive-entry-chip .container:hover {
 
 /* ================================
    HIDE UPGRADE BUTTON (toggle-controlled)
-   Targets the "Upgrade to Google AI Ultra" upsell button
-   in the sidebar navigation area.
    ================================ */
 body.gemini-ext-hide-upgrade [data-test-id="bard-g1-dynamic-upsell-menu-button"],
 body.gemini-ext-hide-upgrade [data-test-id="bard-upsell-menu-button-icon"],

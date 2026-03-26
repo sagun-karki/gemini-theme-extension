@@ -1,9 +1,11 @@
 /**
- * Gemini UI Redesign — Content Script v0.2.29
+ * Gemini UI Redesign — Content Script v0.3.0
+ * - CSS Custom Properties driven (no inline style.setProperty)
  * - Floating rounded sidebar
  * - Custom background images (from storage or bundled defaults)
- * - Per-zone darkness overlays
- * - Inner glow borders + hover effects
+ * - Per-zone darkness overlays via CSS vars
+ * - Ambient focus glow (CSS-only, no JS caret tracking)
+ * - Glassmorphism via CSS vars
  * - Listens for popup changes
  */
 
@@ -17,7 +19,7 @@
     const DEFAULT_BG = chrome.runtime.getURL('bg.webp');
     const DEFAULT_MSG = chrome.runtime.getURL('msg-bg.webp');
 
-    // === ACTIVE IMAGE URLs (will be updated from storage) ===
+    // === ACTIVE STATE (will be updated from storage) ===
     let BG_URL = DEFAULT_BG;
     let SIDEBAR_BG = DEFAULT_MSG;
     let INPUT_BG = DEFAULT_MSG;
@@ -35,7 +37,7 @@
     let DARKNESS_INPUT = 0.6;
     let DARKNESS_MSG = 0.6;
 
-    // === LOAD IMAGES FROM STORAGE ===
+    // === LOAD SETTINGS FROM STORAGE ===
     function loadImagesFromStorage(callback) {
         chrome.storage.local.get(
             ['bg_custom', 'sidebar_custom', 'input_custom', 'msg_custom',
@@ -73,257 +75,57 @@
         );
     }
 
-    // === HIDE UPGRADE BUTTON ===
-    // === GLASSMORPHISM (intensity-based) ===
-    function applyGlass() {
-        if (!document.body) return;
-        if (GLASS_INTENSITY > 0) {
-            document.body.classList.add('gemini-ext-glass');
-            // Map 0-100 to opacity 0.0-0.7
-            const opacity = (GLASS_INTENSITY / 100) * 0.7;
-            // Map 0-100 to actual blur (proportional to slider max)
-            const blur = (GLASS_INTENSITY / 100) * GLASS_BLUR;
-            document.body.style.setProperty('--glass-opacity', opacity);
-            document.body.style.setProperty('--glass-blur', blur + 'px');
+    // === INJECT CSS CUSTOM PROPERTIES (single <style> block) ===
+    // JS handles state; CSS handles rendering.
+    function injectThemeVariables() {
+        let style = document.getElementById('gemini-ext-vars');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = 'gemini-ext-vars';
+            document.head.appendChild(style);
+        }
 
-            // Force-clear input background image so backdrop-filter blur works
-            const inputArea = document.querySelector('input-area-v2');
-            if (inputArea) {
-                inputArea.style.removeProperty('background-image');
-                inputArea.style.setProperty('background-image', 'none', 'important');
+        const glassOpacity = (GLASS_INTENSITY / 100) * 0.7;
+        const glassBlur = (GLASS_INTENSITY / 100) * GLASS_BLUR;
+
+        style.textContent = `
+            :root {
+                --gemini-glass-opacity: ${glassOpacity};
+                --gemini-glass-blur: ${glassBlur}px;
+                --gemini-glow-color: ${GLOW_COLOR};
+                --gemini-glow-intensity: ${GLOW_INTENSITY / 100};
+                --gemini-darkness-bg: ${DARKNESS_BG};
+                --gemini-darkness-sidebar: ${DARKNESS_SIDEBAR};
+                --gemini-darkness-input: ${DARKNESS_INPUT};
+                --gemini-darkness-msg: ${DARKNESS_MSG};
+                --gemini-bg-url: ${BG_URL ? `url("${BG_URL}")` : 'none'};
+                --gemini-sidebar-bg: ${SIDEBAR_BG ? `url("${SIDEBAR_BG}")` : 'none'};
+                --gemini-input-bg: ${INPUT_BG ? `url("${INPUT_BG}")` : 'none'};
+                --gemini-msg-bg: ${MSG_BG ? `url("${MSG_BG}")` : 'none'};
             }
-        } else {
-            document.body.classList.remove('gemini-ext-glass');
-            document.body.style.removeProperty('--glass-opacity');
-            document.body.style.removeProperty('--glass-blur');
-        }
+        `;
     }
 
-    // === INPUT GLOW (caret-tracking light beam) ===
-    let glowEl = null;
-
-    function applyGlow() {
+    // === APPLY BODY CLASSES (CSS handles the rest) ===
+    function applyTheme() {
         if (!document.body) return;
-        if (GLOW_INTENSITY > 0) {
-            document.body.classList.add('gemini-ext-glow');
-            document.body.style.setProperty('--glow-color', GLOW_COLOR);
-            document.body.style.setProperty('--glow-intensity', GLOW_INTENSITY / 100);
-            setupGlowTracking();
-        } else {
-            document.body.classList.remove('gemini-ext-glow');
-            document.body.style.removeProperty('--glow-color');
-            document.body.style.removeProperty('--glow-intensity');
-            removeGlow();
-        }
-    }
 
-    function setupGlowTracking() {
-        const inputArea = document.querySelector('input-area-v2');
-        if (!inputArea) return;
+        injectThemeVariables();
 
-        inputArea.style.setProperty('overflow', 'visible', 'important');
-
-        if (!glowEl || !glowEl.parentElement) {
-            glowEl = document.createElement('div');
-            glowEl.className = 'gemini-glow-cursor';
-            inputArea.appendChild(glowEl);
-        }
-
-        if (!inputArea.dataset.glowBound) {
-            const updateGlowPosition = () => {
-                if (!glowEl || !glowEl.parentElement) return;
-                const sel = window.getSelection();
-                if (!sel || sel.rangeCount === 0) return;
-
-                const range = sel.getRangeAt(0);
-                if (!inputArea.contains(range.startContainer)) return;
-
-                const rects = range.getClientRects();
-                const rect = rects.length > 0 ? rects[0] : range.getBoundingClientRect();
-                const containerRect = inputArea.getBoundingClientRect();
-
-                if (rect && rect.height > 0 && (rect.left > 0 || rect.right > 0)) {
-                    const x = (rect.width === 0)
-                        ? rect.left - containerRect.left
-                        : rect.right - containerRect.left;
-                    // Dock beam to bottom of the caret
-                    const y = rect.bottom - containerRect.top;
-                    glowEl.style.left = x + 'px';
-                    glowEl.style.top = y + 'px';
-                    glowEl.classList.add('active');
-                }
-            };
-
-            // Only show on actual typing, not just focus/click into empty field
-            inputArea.addEventListener('keyup', updateGlowPosition);
-            inputArea.addEventListener('input', () => {
-                requestAnimationFrame(updateGlowPosition);
-            });
-            inputArea.addEventListener('click', () => {
-                // Only update if there's actual text content
-                const editor = inputArea.querySelector('.ql-editor, [contenteditable]');
-                const text = editor ? editor.textContent.trim() : '';
-                if (text.length > 0) {
-                    requestAnimationFrame(updateGlowPosition);
-                }
-            });
-
-            // Hide beam when leaving input
-            inputArea.addEventListener('focusout', () => {
-                if (glowEl) glowEl.classList.remove('active');
-            });
-
-            inputArea.dataset.glowBound = 'true';
-        }
-    }
-
-    function removeGlow() {
-        if (glowEl && glowEl.parentElement) {
-            glowEl.remove();
-        }
-        glowEl = null;
-    }
-
-    function applyHideUpgrade() {
-        if (!document.body) return;
-        if (HIDE_UPGRADE) {
-            document.body.classList.add('gemini-ext-hide-upgrade');
-        } else {
-            document.body.classList.remove('gemini-ext-hide-upgrade');
-        }
-    }
-
-    // === BODY BACKGROUND ===
-    function applyBackground() {
-        if (!document.body) return;
-        applyHideUpgrade();
-        applyGlass();
-        applyGlow();
-        if (BG_URL) {
-            const d = DARKNESS_BG;
-            document.body.style.setProperty('background-image', `linear-gradient(rgba(0,0,0,${d}), rgba(0,0,0,${d})), url("${BG_URL}")`, 'important');
-            document.body.style.setProperty('background-size', 'cover', 'important');
-            document.body.style.setProperty('background-position', 'center center', 'important');
-            document.body.style.setProperty('background-repeat', 'no-repeat', 'important');
-            document.body.style.setProperty('background-attachment', 'fixed', 'important');
-        } else {
-            document.body.style.removeProperty('background-image');
-            document.body.style.removeProperty('background-size');
-            document.body.style.removeProperty('background-position');
-            document.body.style.removeProperty('background-repeat');
-            document.body.style.removeProperty('background-attachment');
-        }
-    }
-
-    // === SIDEBAR BACKGROUND ===
-    function applySidebarBg(sidenav) {
-        if (SIDEBAR_BG) {
-            const d = DARKNESS_SIDEBAR;
-            sidenav.style.setProperty('background-image', `linear-gradient(rgba(0,0,0,${d}), rgba(0,0,0,${d})), url("${SIDEBAR_BG}")`, 'important');
-            sidenav.style.setProperty('background-size', 'cover', 'important');
-            sidenav.style.setProperty('background-position', 'center center', 'important');
-            sidenav.style.setProperty('background-repeat', 'no-repeat', 'important');
-            sidenav.style.setProperty('background-color', 'transparent', 'important');
-            sidenav.style.setProperty('box-shadow', 'inset 0 0 0 1px rgba(255,255,255,0.08)', 'important');
-        } else {
-            sidenav.style.removeProperty('background-image');
-            sidenav.style.removeProperty('background-size');
-            sidenav.style.removeProperty('background-position');
-            sidenav.style.removeProperty('background-repeat');
-        }
-    }
-
-    // === INPUT FIELD BACKGROUND ===
-    // Skipped when glassmorphism is active — glass needs transparency for blur
-    function applyInputBg() {
-        const inputArea = document.querySelector('input-area-v2');
-        if (!inputArea) return;
-
-        // When glass is active, don't apply background images to input
-        if (GLASS_INTENSITY > 0) {
-            inputArea.style.removeProperty('background-image');
-            inputArea.style.setProperty('background-image', 'none', 'important');
-            return;
-        }
-
-        if (INPUT_BG) {
-            const d = DARKNESS_INPUT;
-            inputArea.style.setProperty('background-image', `linear-gradient(rgba(0,0,0,${d}), rgba(0,0,0,${d})), url("${INPUT_BG}")`, 'important');
-            inputArea.style.setProperty('background-size', 'cover', 'important');
-            inputArea.style.setProperty('background-position', 'center center', 'important');
-            inputArea.style.setProperty('background-repeat', 'no-repeat', 'important');
-            inputArea.style.setProperty('background-color', 'transparent', 'important');
-            inputArea.style.setProperty('overflow', 'hidden', 'important');
-            inputArea.style.setProperty('box-shadow', 'inset 0 0 0 1px rgba(255,255,255,0.08)', 'important');
-            inputArea.style.setProperty('transition', 'box-shadow 0.3s ease', 'important');
-
-            const fieldset = inputArea.querySelector('fieldset');
-            if (fieldset) {
-                fieldset.style.setProperty('background', 'transparent', 'important');
-                fieldset.style.setProperty('background-color', 'transparent', 'important');
-            }
-        } else {
-            inputArea.style.removeProperty('background-image');
-            inputArea.style.removeProperty('background-size');
-            inputArea.style.removeProperty('background-position');
-            inputArea.style.removeProperty('background-repeat');
-        }
-
-        // Hover effect
-        if (!inputArea.dataset.hoverBound) {
-            inputArea.addEventListener('mouseenter', () => {
-                inputArea.style.setProperty('box-shadow', 'inset 0 0 0 1px rgba(255,255,255,0.18)', 'important');
-            });
-            inputArea.addEventListener('mouseleave', () => {
-                inputArea.style.setProperty('box-shadow', 'inset 0 0 0 1px rgba(255,255,255,0.08)', 'important');
-            });
-            inputArea.dataset.hoverBound = 'true';
-        }
-    }
-
-    // === USER MESSAGE BUBBLES ===
-    function applyMsgBg() {
-        document.querySelectorAll('.user-query-bubble-with-background').forEach(el => {
-            if (MSG_BG) {
-                const d = DARKNESS_MSG;
-                el.style.setProperty('background-image', `linear-gradient(rgba(0,0,0,${d}), rgba(0,0,0,${d})), url("${MSG_BG}")`, 'important');
-                el.style.setProperty('background-size', 'cover', 'important');
-                el.style.setProperty('background-position', 'center center', 'important');
-                el.style.setProperty('background-repeat', 'no-repeat', 'important');
-                el.style.setProperty('background-color', 'transparent', 'important');
-                el.style.setProperty('box-shadow', 'inset 0 0 0 1px rgba(255,255,255,0.08)', 'important');
-            } else {
-                el.style.removeProperty('background-image');
-                el.style.removeProperty('background-size');
-                el.style.removeProperty('background-position');
-                el.style.removeProperty('background-repeat');
-            }
-        });
-
-        if (MSG_BG) {
-            document.querySelectorAll('.user-query-bubble-with-background .query-content, .user-query-bubble-with-background .query-text').forEach(el => {
-                el.style.setProperty('background', 'transparent', 'important');
-            });
-        }
-    }
-
-    // === FLOATING SIDEBAR ===
-    // Geometry (border-radius, margin, border) handled entirely by content.css.
-    // JS only applies dynamic background images from storage.
-    function applyFloatingSidebar() {
-        const sidenav = document.querySelector('bard-sidenav');
-        if (!sidenav) return;
-
-        applySidebarBg(sidenav);
-        applyInputBg();
-        applyMsgBg();
+        // Toggle body classes — CSS rules key off these
+        document.body.classList.toggle('gemini-ext-glass', GLASS_INTENSITY > 0);
+        document.body.classList.toggle('gemini-ext-glow', GLOW_INTENSITY > 0);
+        document.body.classList.toggle('gemini-ext-hide-upgrade', HIDE_UPGRADE);
+        document.body.classList.toggle('gemini-ext-bg', !!BG_URL);
+        document.body.classList.toggle('gemini-ext-sidebar-bg', !!SIDEBAR_BG);
+        document.body.classList.toggle('gemini-ext-input-bg', !!INPUT_BG && GLASS_INTENSITY === 0);
+        document.body.classList.toggle('gemini-ext-msg-bg', !!MSG_BG);
     }
 
     // === FULL REFRESH ===
     function fullRefresh() {
         loadImagesFromStorage(() => {
-            applyBackground();
-            applyFloatingSidebar();
+            applyTheme();
         });
     }
 
@@ -337,12 +139,11 @@
 
     // === INIT ===
     loadImagesFromStorage(() => {
-        if (document.body) applyBackground();
-        else document.addEventListener('DOMContentLoaded', applyBackground);
+        if (document.body) applyTheme();
+        else document.addEventListener('DOMContentLoaded', applyTheme);
 
-        // Wait for Gemini SPA to render the sidenav via observer instead of fragile timeouts
+        // Re-apply on DOM mutations (Gemini SPA re-renders)
         waitForElement('bard-sidenav', () => {
-            applyFloatingSidebar();
             startObserver();
         });
     });
@@ -364,6 +165,7 @@
     }
 
     // === MUTATION OBSERVER (throttled) ===
+    // Only re-injects CSS vars (cheap) on DOM changes
     function startObserver() {
         let pendingRefresh = false;
 
@@ -371,8 +173,7 @@
             if (!pendingRefresh) {
                 pendingRefresh = true;
                 requestAnimationFrame(() => {
-                    applyFloatingSidebar();
-                    applyMsgBg();
+                    applyTheme();
                     pendingRefresh = false;
                 });
             }

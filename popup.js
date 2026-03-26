@@ -131,7 +131,7 @@
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const MAX = 1920;
+                const MAX = 800;  // Reduced from 1920 — prevents storage quota errors
                 let w = img.width, h = img.height;
                 if (w > MAX || h > MAX) {
                     if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
@@ -141,7 +141,7 @@
                 canvas.height = h;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, w, h);
-                const dataUrl = canvas.toDataURL('image/webp', 0.85);
+                const dataUrl = canvas.toDataURL('image/webp', 0.65);
 
                 chrome.storage.local.set({ [KEYS[index]]: dataUrl }, () => {
                     if (chrome.runtime.lastError) {
