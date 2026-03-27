@@ -24,7 +24,8 @@
     "content_scripts": [
         {
             "matches": [
-                "https://gemini.google.com/*"
+                "https://gemini.google.com/*",
+                "https://chat.qwen.ai/*"
             ],
             "css": [
                 "content.css"
@@ -33,7 +34,8 @@
         },
         {
             "matches": [
-                "https://gemini.google.com/*"
+                "https://gemini.google.com/*",
+                "https://chat.qwen.ai/*"
             ],
             "js": [
                 "content.js"
@@ -49,7 +51,8 @@
                 "*.svg"
             ],
             "matches": [
-                "https://gemini.google.com/*"
+                "https://gemini.google.com/*",
+                "https://chat.qwen.ai/*"
             ]
         }
     ]

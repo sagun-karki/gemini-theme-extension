@@ -188,7 +188,10 @@
     function startLoadingObserver() {
         const checkLoading = () => {
             if (!document.body) return;
-            const isStreaming = !!document.querySelector('model-response[is-generating]');
+            // Support both Gemini and Qwen selectors
+            const isStreaming = !!document.querySelector('model-response[is-generating]') || 
+                               !!document.querySelector('.message.assistant.generating') ||
+                               !!document.querySelector('[data-streaming="true"]');
             document.body.classList.toggle('is-loading', isStreaming);
         };
         
@@ -199,7 +202,10 @@
     // Optimized: only watches the chat area where messages appear
     function startChatObserver() {
         let pendingRefresh = false;
-        const chatContainer = document.querySelector('.conversation-container');
+        // Support both Gemini and Qwen containers
+        const chatContainer = document.querySelector('.conversation-container') || 
+                             document.querySelector('.chat-container') ||
+                             document.querySelector('.message-list');
         if (!chatContainer) return;
 
         const chatObserver = new MutationObserver(() => {
@@ -221,7 +227,10 @@
     // === MUTATION OBSERVER #2: Persistent elements (sidebar, etc.) ===
     // One-time observer for static UI elements that rarely change
     function startPersistentObserver() {
-        const sidebar = document.querySelector('bard-sidenav');
+        // Support both Gemini and Qwen sidebars
+        const sidebar = document.querySelector('bard-sidenav') || 
+                       document.querySelector('.sidebar') ||
+                       document.querySelector('.side-nav');
         if (!sidebar) return;
 
         const persistentObserver = new MutationObserver(() => {
@@ -257,12 +266,13 @@
         else document.addEventListener('DOMContentLoaded', applyTheme);
 
         // Wait for key elements, then set up optimized observers
-        waitForElement('bard-sidenav', () => {
+        // Support both Gemini and Qwen selectors
+        waitForElement('bard-sidenav, .sidebar, .side-nav', () => {
             startLoadingObserver();
             startPersistentObserver();
         });
 
-        waitForElement('.conversation-container', () => {
+        waitForElement('.conversation-container, .chat-container, .message-list', () => {
             startChatObserver();
             setupIntersectionObserver();
         });
