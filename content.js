@@ -1,5 +1,5 @@
 /**
- * Gemini UI Redesign — Content Script v0.4.0
+ * Gemini UI Redesign — Content Script v0.5.0
  * - High-performance local state cache (single storage fetch)
  * - Optimized dual MutationObserver strategy
  * - IntersectionObserver for viewport-aware effects
@@ -10,6 +10,7 @@
  * - Per-zone darkness overlays via CSS vars
  * - Ambient focus glow (CSS-only, no JS caret tracking)
  * - Glassmorphism via CSS vars
+ * - Multiple gradient presets (default, sunset, ocean, aurora, neon, forest, midnight)
  */
 
 (() => {
@@ -34,7 +35,8 @@
         darknessBg: 0.6,
         darknessSidebar: 0.6,
         darknessInput: 0.6,
-        darknessMsg: 0.6
+        darknessMsg: 0.6,
+        gradientPreset: 'default' // default, sunset, ocean, aurora, neon, forest, midnight
     };
 
     // === LOAD SETTINGS FROM STORAGE (single fetch, populate cache) ===
@@ -43,7 +45,8 @@
             'bg_custom', 'sidebar_custom', 'input_custom', 'msg_custom',
             'backgrounds_enabled', 'hide_upgrade', 'zen_mode',
             'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color',
-            'darkness_bg', 'darkness_sidebar', 'darkness_input', 'darkness_msg'
+            'darkness_bg', 'darkness_sidebar', 'darkness_input', 'darkness_msg',
+            'gradient_preset'
         ], (data) => {
             // Update cache
             stateCache.backgroundsEnabled = data.backgrounds_enabled !== false;
@@ -53,6 +56,7 @@
             stateCache.glassBlur = data.glass_blur ?? 24;
             stateCache.glowIntensity = data.glow_intensity ?? 0;
             stateCache.glowColor = data.glow_color ?? '#a855f7';
+            stateCache.gradientPreset = data.gradient_preset ?? 'default';
 
             // Per-zone darkness (convert 0-100 to 0.0-1.0)
             stateCache.darknessBg = (data.darkness_bg ?? 60) / 100;
@@ -90,6 +94,19 @@
         const glassOpacity = (stateCache.glassIntensity / 100) * 0.7;
         const glassBlur = (stateCache.glassIntensity / 100) * stateCache.glassBlur;
 
+        // Gradient preset colors
+        const gradientPresets = {
+            default: { mesh1: '#4f46e5', mesh2: '#c026d3', mesh3: '#0891b2' }, // Indigo, Fuchsia, Cyan
+            sunset: { mesh1: '#f97316', mesh2: '#ec4899', mesh3: '#a855f7' }, // Orange, Pink, Purple
+            ocean: { mesh1: '#0ea5e9', mesh2: '#14b8a6', mesh3: '#22c55e' }, // Sky, Teal, Green
+            aurora: { mesh1: '#22c55e', mesh2: '#14b8a6', mesh3: '#3b82f6' }, // Green, Teal, Blue
+            neon: { mesh1: '#f43f5e', mesh2: '#8b5cf6', mesh3: '#06b6d4' }, // Rose, Violet, Cyan
+            forest: { mesh1: '#166534', mesh2: '#15803d', mesh3: '#84cc16' }, // Dark Green, Green, Lime
+            midnight: { mesh1: '#1e3a8a', mesh2: '#4c1d95', mesh3: '#581c87' } // Navy, Deep Purple, Purple
+        };
+
+        const preset = gradientPresets[stateCache.gradientPreset] || gradientPresets.default;
+
         style.textContent = `
             :root {
                 --gemini-glass-opacity: ${glassOpacity};
@@ -104,6 +121,9 @@
                 --gemini-sidebar-bg: ${stateCache.sidebarBg ? `url("${stateCache.sidebarBg}")` : 'none'};
                 --gemini-input-bg: ${stateCache.inputBg ? `url("${stateCache.inputBg}")` : 'none'};
                 --gemini-msg-bg: ${stateCache.msgBg ? `url("${stateCache.msgBg}")` : 'none'};
+                --gemini-mesh-1: ${preset.mesh1};
+                --gemini-mesh-2: ${preset.mesh2};
+                --gemini-mesh-3: ${preset.mesh3};
             }
         `;
     }
@@ -140,6 +160,10 @@
         } else if (msg.type === 'TOGGLE_ZEN') {
             stateCache.zenMode = !stateCache.zenMode;
             document.body.classList.toggle('gemini-zen-mode', stateCache.zenMode);
+            sendResponse({ ok: true });
+        } else if (msg.type === 'SET_GRADIENT') {
+            stateCache.gradientPreset = msg.preset || 'default';
+            injectThemeVariables();
             sendResponse({ ok: true });
         }
     });

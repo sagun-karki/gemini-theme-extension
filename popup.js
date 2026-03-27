@@ -1,8 +1,9 @@
 /**
- * Gemini UI Redesign — Popup v0.4.0
+ * Gemini UI Redesign — Popup v0.5.0
  * - OffscreenCanvas for non-blocking image processing
  * - Debounced slider saves to prevent storage spam
  * - Per-zone darkness sliders + drag & drop + storage + auto-reload
+ * - Multiple gradient presets (default, sunset, ocean, aurora, neon, forest, midnight)
  */
 
 (() => {
@@ -29,6 +30,9 @@
     const glowPresets = document.getElementById('glow-presets');
     const glowColorCustom = document.getElementById('glow-color-custom');
     const zonesContainer = document.getElementById('zones-container');
+    
+    // Gradient presets
+    const gradientPresets = document.getElementById('gradient-presets');
 
     // All per-zone darkness sliders
     const darknessSliders = document.querySelectorAll('.darkness-slider');
@@ -79,7 +83,7 @@
     // === LOAD STATE ===
     function loadState() {
         chrome.storage.local.get([...KEYS, ...DARKNESS_KEYS, 'backgrounds_enabled', 'hide_upgrade', 'zen_mode',
-            'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color'], (data) => {
+            'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color', 'gradient_preset'], (data) => {
             // Toggle
             const enabled = data.backgrounds_enabled !== false;
             toggleInput.checked = enabled;
@@ -110,6 +114,10 @@
             const glowC = data.glow_color ?? '#a855f7';
             glowColorCustom.value = glowC;
             setActivePreset(glowC);
+
+            // Gradient preset
+            const gradientPreset = data.gradient_preset ?? 'default';
+            setActiveGradientPreset(gradientPreset);
 
             // Per-zone darkness sliders
             darknessSliders.forEach(slider => {
@@ -147,6 +155,12 @@
     function setActivePreset(color) {
         glowPresets.querySelectorAll('.color-dot').forEach(dot => {
             dot.classList.toggle('active', dot.dataset.color === color);
+        });
+    }
+
+    function setActiveGradientPreset(preset) {
+        gradientPresets.querySelectorAll('.gradient-dot').forEach(dot => {
+            dot.classList.toggle('active', dot.dataset.gradient === preset);
         });
     }
 
@@ -332,6 +346,22 @@
         setActivePreset(color);
         chrome.storage.local.set({ glow_color: color }, () => {
             debouncedRefresh();
+        });
+    });
+
+    // === GRADIENT PRESETS (debounced save) ===
+    gradientPresets.querySelectorAll('.gradient-dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+            const preset = dot.dataset.gradient;
+            setActiveGradientPreset(preset);
+            chrome.storage.local.set({ gradient_preset: preset }, () => {
+                // Send message to active tabs to update gradient immediately
+                chrome.tabs.query({ url: 'https://gemini.google.com/*' }, (tabs) => {
+                    tabs.forEach(tab => {
+                        chrome.tabs.sendMessage(tab.id, { type: 'SET_GRADIENT', preset });
+                    });
+                });
+            });
         });
     });
 
