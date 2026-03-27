@@ -1,6 +1,9 @@
 /**
- * Gemini UI Redesign — Popup v0.3.0
- * Per-zone darkness sliders + drag & drop + storage + auto-reload
+ * Gemini UI Redesign — Popup v0.5.0
+ * - OffscreenCanvas for non-blocking image processing
+ * - Debounced slider saves to prevent storage spam
+ * - Per-zone darkness sliders + drag & drop + storage + auto-reload
+ * - Multiple gradient presets (default, sunset, ocean, aurora, neon, forest, midnight)
  */
 
 (() => {
@@ -27,14 +30,60 @@
     const glowPresets = document.getElementById('glow-presets');
     const glowColorCustom = document.getElementById('glow-color-custom');
     const zonesContainer = document.getElementById('zones-container');
+    
+    // Gradient presets
+    const gradientPresets = document.getElementById('gradient-presets');
 
     // All per-zone darkness sliders
     const darknessSliders = document.querySelectorAll('.darkness-slider');
 
+    // === DEBOUNCE UTIL (prevents storage spam on rapid slider changes) ===
+    const debounce = (fn, delay) => {
+        let timeoutId;
+        return (...args) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => fn(...args), delay);
+        };
+    };
+
+    // === OFFSCREEN CANVAS IMAGE PROCESSING (non-blocking) ===
+    async function processImageOffscreen(file) {
+        if (!file || !file.type.startsWith('image/')) return null;
+
+        const bitmap = await createImageBitmap(file);
+        const MAX = 800; // Reduced from 1920 — prevents storage quota errors
+        let w = bitmap.width, h = bitmap.height;
+        
+        if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+            else { w = Math.round(w * MAX / h); h = MAX; }
+        }
+
+        // Create offscreen canvas
+        const offscreen = new OffscreenCanvas(w, h);
+        const ctx = offscreen.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0, w, h);
+        
+        // Convert to WebP blob
+        const blob = await offscreen.convertToBlob({ type: 'image/webp', quality: 0.65 });
+        
+        // Convert blob to data URL
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    // Debounced refresh function
+    const debouncedRefresh = debounce(() => {
+        refreshGeminiTabs();
+    }, 300);
+
     // === LOAD STATE ===
     function loadState() {
         chrome.storage.local.get([...KEYS, ...DARKNESS_KEYS, 'backgrounds_enabled', 'hide_upgrade', 'zen_mode',
-            'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color'], (data) => {
+            'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color', 'gradient_preset'], (data) => {
             // Toggle
             const enabled = data.backgrounds_enabled !== false;
             toggleInput.checked = enabled;
@@ -65,6 +114,10 @@
             const glowC = data.glow_color ?? '#a855f7';
             glowColorCustom.value = glowC;
             setActivePreset(glowC);
+
+            // Gradient preset
+            const gradientPreset = data.gradient_preset ?? 'default';
+            setActiveGradientPreset(gradientPreset);
 
             // Per-zone darkness sliders
             darknessSliders.forEach(slider => {
@@ -105,6 +158,12 @@
         });
     }
 
+    function setActiveGradientPreset(preset) {
+        gradientPresets.querySelectorAll('.gradient-dot').forEach(dot => {
+            dot.classList.toggle('active', dot.dataset.gradient === preset);
+        });
+    }
+
     function updateDisabledState(enabled) {
         if (enabled) {
             zonesContainer.classList.remove('disabled');
@@ -127,39 +186,28 @@
         zone.classList.remove('has-image');
     }
 
-    // === FILE HANDLING ===
-    function handleFile(file, index) {
+    // === FILE HANDLING (using OffscreenCanvas for non-blocking processing) ===
+    async function handleFile(file, index) {
         if (!file || !file.type.startsWith('image/')) return;
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX = 800;  // Reduced from 1920 — prevents storage quota errors
-                let w = img.width, h = img.height;
-                if (w > MAX || h > MAX) {
-                    if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-                    else { w = Math.round(w * MAX / h); h = MAX; }
-                }
-                canvas.width = w;
-                canvas.height = h;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, h);
-                const dataUrl = canvas.toDataURL('image/webp', 0.65);
+        try {
+            // Process image off the main thread using OffscreenCanvas
+            const dataUrl = await processImageOffscreen(file);
+            
+            if (!dataUrl) return;
 
-                chrome.storage.local.set({ [KEYS[index]]: dataUrl }, () => {
-                    if (chrome.runtime.lastError) {
-                        alert('Image too large for storage. Try a smaller image.\n' + chrome.runtime.lastError.message);
-                        return;
-                    }
-                    showPreview(ZONE_IDS[index], PREVIEW_IDS[index], dataUrl);
-                    refreshGeminiTabs();
-                });
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+            chrome.storage.local.set({ [KEYS[index]]: dataUrl }, () => {
+                if (chrome.runtime.lastError) {
+                    alert('Image too large for storage. Try a smaller image.\n' + chrome.runtime.lastError.message);
+                    return;
+                }
+                showPreview(ZONE_IDS[index], PREVIEW_IDS[index], dataUrl);
+                debouncedRefresh(); // Use debounced refresh
+            });
+        } catch (err) {
+            console.error('Image processing error:', err);
+            alert('Failed to process image. Please try a different file.');
+        }
     }
 
     // === REFRESH GEMINI TABS ===
@@ -242,7 +290,7 @@
         });
     });
 
-    // === GLASS INTENSITY SLIDER ===
+    // === GLASS INTENSITY SLIDER (debounced save) ===
     glassIntensity.addEventListener('input', () => {
         glassIntensityValue.textContent = parseInt(glassIntensity.value) + '%';
     });
@@ -251,11 +299,11 @@
         const val = parseInt(glassIntensity.value);
         updateBlurRowState(val > 0);
         chrome.storage.local.set({ glass_intensity: val }, () => {
-            refreshGeminiTabs();
+            debouncedRefresh();
         });
     });
 
-    // === GLASS BLUR SLIDER ===
+    // === GLASS BLUR SLIDER (debounced save) ===
     glassBlurSlider.addEventListener('input', () => {
         glassBlurValue.textContent = parseInt(glassBlurSlider.value) + 'px';
     });
@@ -263,11 +311,11 @@
     glassBlurSlider.addEventListener('change', () => {
         const val = parseInt(glassBlurSlider.value);
         chrome.storage.local.set({ glass_blur: val }, () => {
-            refreshGeminiTabs();
+            debouncedRefresh();
         });
     });
 
-    // === GLOW INTENSITY SLIDER ===
+    // === GLOW INTENSITY SLIDER (debounced save) ===
     glowIntensity.addEventListener('input', () => {
         glowIntensityValue.textContent = parseInt(glowIntensity.value) + '%';
     });
@@ -276,32 +324,48 @@
         const val = parseInt(glowIntensity.value);
         updateGlowColorState(val > 0);
         chrome.storage.local.set({ glow_intensity: val }, () => {
-            refreshGeminiTabs();
+            debouncedRefresh();
         });
     });
 
-    // === GLOW COLOR PRESETS ===
+    // === GLOW COLOR PRESETS (debounced save) ===
     glowPresets.querySelectorAll('.color-dot').forEach(dot => {
         dot.addEventListener('click', () => {
             const color = dot.dataset.color;
             setActivePreset(color);
             glowColorCustom.value = color;
             chrome.storage.local.set({ glow_color: color }, () => {
-                refreshGeminiTabs();
+                debouncedRefresh();
             });
         });
     });
 
-    // === GLOW CUSTOM COLOR ===
+    // === GLOW CUSTOM COLOR (debounced save) ===
     glowColorCustom.addEventListener('input', () => {
         const color = glowColorCustom.value;
         setActivePreset(color);
         chrome.storage.local.set({ glow_color: color }, () => {
-            refreshGeminiTabs();
+            debouncedRefresh();
         });
     });
 
-    // === PER-ZONE DARKNESS SLIDERS ===
+    // === GRADIENT PRESETS (debounced save) ===
+    gradientPresets.querySelectorAll('.gradient-dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+            const preset = dot.dataset.gradient;
+            setActiveGradientPreset(preset);
+            chrome.storage.local.set({ gradient_preset: preset }, () => {
+                // Send message to active tabs to update gradient immediately
+                chrome.tabs.query({ url: 'https://gemini.google.com/*' }, (tabs) => {
+                    tabs.forEach(tab => {
+                        chrome.tabs.sendMessage(tab.id, { type: 'SET_GRADIENT', preset });
+                    });
+                });
+            });
+        });
+    });
+
+    // === PER-ZONE DARKNESS SLIDERS (debounced save) ===
     darknessSliders.forEach(slider => {
         const valueSpan = slider.nextElementSibling;
 
@@ -313,7 +377,7 @@
             const key = slider.dataset.target;
             const val = parseInt(slider.value);
             chrome.storage.local.set({ [key]: val }, () => {
-                refreshGeminiTabs();
+                debouncedRefresh();
             });
         });
     });
