@@ -1,5 +1,5 @@
 /**
- * Gemini UI Redesign — Content Script v0.5.0
+ * Gemini UI Redesign — Content Script v0.6.0
  * - High-performance local state cache (single storage fetch)
  * - Optimized dual MutationObserver strategy
  * - IntersectionObserver for viewport-aware effects
@@ -9,7 +9,8 @@
  * - Custom background images (from storage or bundled defaults)
  * - Per-zone darkness overlays via CSS vars
  * - Ambient focus glow (CSS-only, no JS caret tracking)
- * - Glassmorphism via CSS vars
+ * - Full glass effect always enabled (no slider)
+ * - Hide upgrade button always on
  * - Multiple gradient presets (default, sunset, ocean, aurora, neon, forest, midnight)
  */
 
@@ -26,10 +27,7 @@
         inputBg: null,
         msgBg: null,
         backgroundsEnabled: true,
-        hideUpgrade: false,
         zenMode: false,
-        glassIntensity: 0,
-        glassBlur: 24,
         glowIntensity: 0,
         glowColor: '#a855f7',
         darknessBg: 0.6,
@@ -43,17 +41,14 @@
     function loadStateFromStorage(callback) {
         chrome.storage.local.get([
             'bg_custom', 'sidebar_custom', 'input_custom', 'msg_custom',
-            'backgrounds_enabled', 'hide_upgrade', 'zen_mode',
-            'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color',
+            'backgrounds_enabled', 'zen_mode',
+            'glow_intensity', 'glow_color',
             'darkness_bg', 'darkness_sidebar', 'darkness_input', 'darkness_msg',
             'gradient_preset'
         ], (data) => {
             // Update cache
             stateCache.backgroundsEnabled = data.backgrounds_enabled !== false;
-            stateCache.hideUpgrade = data.hide_upgrade === true;
             stateCache.zenMode = data.zen_mode === true;
-            stateCache.glassIntensity = data.glass_intensity ?? 0;
-            stateCache.glassBlur = data.glass_blur ?? 24;
             stateCache.glowIntensity = data.glow_intensity ?? 0;
             stateCache.glowColor = data.glow_color ?? '#a855f7';
             stateCache.gradientPreset = data.gradient_preset ?? 'default';
@@ -91,9 +86,6 @@
             document.head.appendChild(style);
         }
 
-        const glassOpacity = (stateCache.glassIntensity / 100) * 0.7;
-        const glassBlur = (stateCache.glassIntensity / 100) * stateCache.glassBlur;
-
         // Gradient preset colors
         const gradientPresets = {
             default: { mesh1: '#4f46e5', mesh2: '#c026d3', mesh3: '#0891b2' }, // Indigo, Fuchsia, Cyan
@@ -109,8 +101,6 @@
 
         style.textContent = `
             :root {
-                --gemini-glass-opacity: ${glassOpacity};
-                --gemini-glass-blur: ${glassBlur}px;
                 --gemini-glow-color: ${stateCache.glowColor};
                 --gemini-glow-intensity: ${stateCache.glowIntensity / 100};
                 --gemini-darkness-bg: ${stateCache.darknessBg};
@@ -135,13 +125,11 @@
         injectThemeVariables();
 
         // Toggle body classes — CSS rules key off these
-        document.body.classList.toggle('gemini-ext-glass', stateCache.glassIntensity > 0);
         document.body.classList.toggle('gemini-ext-glow', stateCache.glowIntensity > 0);
-        document.body.classList.toggle('gemini-ext-hide-upgrade', stateCache.hideUpgrade);
         document.body.classList.toggle('gemini-zen-mode', stateCache.zenMode);
         document.body.classList.toggle('gemini-ext-bg', !!stateCache.bgUrl);
         document.body.classList.toggle('gemini-ext-sidebar-bg', !!stateCache.sidebarBg);
-        document.body.classList.toggle('gemini-ext-input-bg', !!stateCache.inputBg && stateCache.glassIntensity === 0);
+        document.body.classList.toggle('gemini-ext-input-bg', !!stateCache.inputBg);
         document.body.classList.toggle('gemini-ext-msg-bg', !!stateCache.msgBg);
     }
 

@@ -292,17 +292,16 @@ body.gemini-ext-input-bg input-area-v2 fieldset {
 }
 
 /* ================================
-   GLASSMORPHISM — Deep Glass (intensity-based)
-   Uses --gemini-glass-opacity and --gemini-glass-blur CSS vars
+   GLASSMORPHISM — Full Glass (always enabled)
+   Fixed 100% glass effect on input area and sidebar
    Higher saturate + top highlight for modern depth
    GPU-accelerated transitions
    ================================ */
-body.gemini-ext-glass input-area-v2,
-body.gemini-ext-glass input-area-v2[style] {
-    background: rgba(10, 10, 12, calc(var(--gemini-glass-opacity, 0.55) * 0.9)) !important;
-    background-image: none !important;
-    backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
-    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
+body.gemini-ext-input-bg input-area-v2,
+body.gemini-ext-input-bg input-area-v2[style] {
+    background: rgba(10, 10, 12, 0.65) !important;
+    backdrop-filter: blur(24px) saturate(180%) contrast(110%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) contrast(110%) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 24px !important;
     box-shadow:
@@ -314,45 +313,52 @@ body.gemini-ext-glass input-area-v2[style] {
     overflow: visible !important;
 }
 
-body.gemini-ext-glass input-area-v2:hover,
-body.gemini-ext-glass input-area-v2[style]:hover {
-    border-color: rgba(255, 255, 255, calc(var(--gemini-glass-opacity, 0.55) * 0.3)) !important;
+body.gemini-ext-input-bg input-area-v2:hover,
+body.gemini-ext-input-bg input-area-v2[style]:hover {
+    border-color: rgba(255, 255, 255, 0.18) !important;
     box-shadow:
         0 4px 24px rgba(0, 0, 0, 0.45),
         inset 0 1px 0 rgba(255, 255, 255, 0.12),
-        inset 0 0 0 1px rgba(255, 255, 255, calc(var(--gemini-glass-opacity, 0.55) * 0.14)) !important;
+        inset 0 0 0 1px rgba(255, 255, 255, 0.14) !important;
 }
 
-body.gemini-ext-glass input-area-v2:focus-within:not(:focus-visible),
-body.gemini-ext-glass input-area-v2[style]:focus-within:not(:focus-visible) {
-    border-color: rgba(138, 180, 248, calc(var(--gemini-glass-opacity, 0.55) * 0.4)) !important;
+body.gemini-ext-input-bg input-area-v2:focus-within:not(:focus-visible),
+body.gemini-ext-input-bg input-area-v2[style]:focus-within:not(:focus-visible) {
+    border-color: rgba(138, 180, 248, 0.4) !important;
     box-shadow:
         0 4px 24px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba(138, 180, 248, calc(var(--gemini-glass-opacity, 0.55) * 0.08)),
+        0 0 20px rgba(138, 180, 248, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
-        inset 0 0 0 1px rgba(138, 180, 248, calc(var(--gemini-glass-opacity, 0.55) * 0.12)) !important;
+        inset 0 0 0 1px rgba(138, 180, 248, 0.12) !important;
 }
 
 /* Force ALL internal elements transparent so glass + blur shows through */
-body.gemini-ext-glass input-area-v2 fieldset,
-body.gemini-ext-glass input-area-v2 .input-area-container,
-body.gemini-ext-glass input-area-v2 .text-input-field,
-body.gemini-ext-glass input-area-v2 .ql-editor,
-body.gemini-ext-glass input-area-v2 rich-textarea,
-body.gemini-ext-glass input-area-v2 .textarea-wrapper,
-body.gemini-ext-glass input-area-v2 .text-input-field_textarea-wrapper {
+body.gemini-ext-input-bg input-area-v2 fieldset,
+body.gemini-ext-input-bg input-area-v2 .input-area-container,
+body.gemini-ext-input-bg input-area-v2 .text-input-field,
+body.gemini-ext-input-bg input-area-v2 .ql-editor,
+body.gemini-ext-input-bg input-area-v2 rich-textarea,
+body.gemini-ext-input-bg input-area-v2 .textarea-wrapper,
+body.gemini-ext-input-bg input-area-v2 .text-input-field_textarea-wrapper {
     background: transparent !important;
     background-color: transparent !important;
     background-image: none !important;
 }
 
-body.gemini-ext-glass input-area-v2 .mat-mdc-text-field-wrapper,
-body.gemini-ext-glass input-area-v2 .mdc-text-field,
-body.gemini-ext-glass input-area-v2 .mdc-text-field--filled,
-body.gemini-ext-glass input-area-v2 .mdc-text-field--no-label {
+body.gemini-ext-input-bg input-area-v2 .mat-mdc-text-field-wrapper,
+body.gemini-ext-input-bg input-area-v2 .mdc-text-field,
+body.gemini-ext-input-bg input-area-v2 .mdc-text-field--filled,
+body.gemini-ext-input-bg input-area-v2 .mdc-text-field--no-label {
     background: transparent !important;
     background-color: transparent !important;
     background-image: none !important;
+}
+
+/* Sidebar Glass Effect */
+body.gemini-ext-sidebar-bg bard-sidenav,
+body.gemini-ext-sidebar-bg bard-sidenav[style] {
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
 }
 
 /* ================================
@@ -824,12 +830,12 @@ immersive-entry-chip .container:hover {
 }
 
 /* ================================
-   HIDE UPGRADE BUTTON (toggle-controlled)
+   HIDE UPGRADE BUTTON (always hidden)
    ================================ */
-body.gemini-ext-hide-upgrade [data-test-id="bard-g1-dynamic-upsell-menu-button"],
-body.gemini-ext-hide-upgrade [data-test-id="bard-upsell-menu-button-icon"],
-body.gemini-ext-hide-upgrade .dynamic-upsell-label,
-body.gemini-ext-hide-upgrade button[aria-label][jslog*="246609"] {
+[data-test-id="bard-g1-dynamic-upsell-menu-button"],
+[data-test-id="bard-upsell-menu-button-icon"],
+.dynamic-upsell-label,
+button[aria-label][jslog*="246609"] {
     display: none !important;
 }
 

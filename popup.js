@@ -1,5 +1,7 @@
 /**
- * Gemini UI Redesign — Popup v0.5.0
+ * Gemini UI Redesign — Popup v0.6.0
+ * - Full glass effect always enabled (no slider)
+ * - Hide upgrade button always on
  * - OffscreenCanvas for non-blocking image processing
  * - Debounced slider saves to prevent storage spam
  * - Per-zone darkness sliders + drag & drop + storage + auto-reload
@@ -15,15 +17,9 @@
     const PREVIEW_IDS = ['preview-bg', 'preview-sidebar', 'preview-input', 'preview-msg'];
 
     const toggleInput = document.getElementById('toggle-backgrounds');
-    const toggleHideUpgrade = document.getElementById('toggle-hide-upgrade');
     const toggleZenMode = document.getElementById('toggle-zen-mode');
     
     // Glass & Glow elements
-    const glassIntensity = document.getElementById('glass-intensity');
-    const glassIntensityValue = document.getElementById('glass-intensity-value');
-    const glassBlurSlider = document.getElementById('glass-blur-slider');
-    const glassBlurValue = document.getElementById('glass-blur-value');
-    const glassBlurRow = document.getElementById('glass-blur-row');
     const glowIntensity = document.getElementById('glow-intensity');
     const glowIntensityValue = document.getElementById('glow-intensity-value');
     const glowColorRow = document.getElementById('glow-color-row');
@@ -82,28 +78,15 @@
 
     // === LOAD STATE ===
     function loadState() {
-        chrome.storage.local.get([...KEYS, ...DARKNESS_KEYS, 'backgrounds_enabled', 'hide_upgrade', 'zen_mode',
-            'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color', 'gradient_preset'], (data) => {
+        chrome.storage.local.get([...KEYS, ...DARKNESS_KEYS, 'backgrounds_enabled', 'zen_mode',
+            'glow_intensity', 'glow_color', 'gradient_preset'], (data) => {
             // Toggle
             const enabled = data.backgrounds_enabled !== false;
             toggleInput.checked = enabled;
             updateDisabledState(enabled);
 
-            // Hide Upgrade toggle
-            toggleHideUpgrade.checked = data.hide_upgrade === true;
-
             // Zen Mode toggle
             toggleZenMode.checked = data.zen_mode === true;
-
-            // Glass intensity (0-100)
-            const gi = data.glass_intensity ?? 0;
-            glassIntensity.value = gi;
-            glassIntensityValue.textContent = gi + '%';
-            updateBlurRowState(gi > 0);
-
-            const blur = data.glass_blur ?? 24;
-            glassBlurSlider.value = blur;
-            glassBlurValue.textContent = blur + 'px';
 
             // Glow
             const glowI = data.glow_intensity ?? 0;
@@ -134,14 +117,6 @@
                 }
             });
         });
-    }
-
-    function updateBlurRowState(enabled) {
-        if (enabled) {
-            glassBlurRow.classList.remove('disabled');
-        } else {
-            glassBlurRow.classList.add('disabled');
-        }
     }
 
     function updateGlowColorState(enabled) {
@@ -270,14 +245,6 @@
         });
     });
 
-    // === HIDE UPGRADE TOGGLE ===
-    toggleHideUpgrade.addEventListener('change', () => {
-        const hide = toggleHideUpgrade.checked;
-        chrome.storage.local.set({ hide_upgrade: hide }, () => {
-            refreshGeminiTabs();
-        });
-    });
-
     // === ZEN MODE TOGGLE ===
     toggleZenMode.addEventListener('change', () => {
         const zen = toggleZenMode.checked;
@@ -287,31 +254,6 @@
                     chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_ZEN' });
                 });
             });
-        });
-    });
-
-    // === GLASS INTENSITY SLIDER (debounced save) ===
-    glassIntensity.addEventListener('input', () => {
-        glassIntensityValue.textContent = parseInt(glassIntensity.value) + '%';
-    });
-
-    glassIntensity.addEventListener('change', () => {
-        const val = parseInt(glassIntensity.value);
-        updateBlurRowState(val > 0);
-        chrome.storage.local.set({ glass_intensity: val }, () => {
-            debouncedRefresh();
-        });
-    });
-
-    // === GLASS BLUR SLIDER (debounced save) ===
-    glassBlurSlider.addEventListener('input', () => {
-        glassBlurValue.textContent = parseInt(glassBlurSlider.value) + 'px';
-    });
-
-    glassBlurSlider.addEventListener('change', () => {
-        const val = parseInt(glassBlurSlider.value);
-        chrome.storage.local.set({ glass_blur: val }, () => {
-            debouncedRefresh();
         });
     });
 
