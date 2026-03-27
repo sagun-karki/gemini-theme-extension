@@ -114,9 +114,12 @@ body, html {
 /* ================================
    FLOATING SIDEBAR
    Rounded corners, margin from edges, soft elevation
+   Support both Gemini and Qwen selectors
    ================================ */
 bard-sidenav,
-bard-sidenav[style] {
+bard-sidenav[style],
+.sidebar,
+.side-nav {
     border-radius: 16px !important;
     margin: 12px !important;
     height: calc(100vh - 24px) !important;
@@ -134,7 +137,9 @@ bard-sidenav[style] {
 
 /* Sidebar background image via CSS var */
 body.gemini-ext-sidebar-bg bard-sidenav,
-body.gemini-ext-sidebar-bg bard-sidenav[style] {
+body.gemini-ext-sidebar-bg bard-sidenav[style],
+body.gemini-ext-sidebar-bg .sidebar,
+body.gemini-ext-sidebar-bg .side-nav {
     background-image:
         linear-gradient(
             rgba(0,0,0, var(--gemini-darkness-sidebar, 0.6)),
@@ -151,7 +156,9 @@ body.gemini-ext-sidebar-bg bard-sidenav[style] {
 }
 
 /* Inner content inherits rounded corners + breathing room */
-side-navigation-content {
+side-navigation-content,
+.sidebar-content,
+.nav-content {
     border-radius: 16px !important;
     background: transparent !important;
     background-color: transparent !important;
@@ -163,8 +170,16 @@ side-navigation-content {
 /* Kill gradient fade strips at top/bottom of sidebar scroll area */
 bard-sidenav::after,
 bard-sidenav::before,
+.sidebar::after,
+.sidebar::before,
+.side-nav::after,
+.side-nav::before,
 side-navigation-content::after,
 side-navigation-content::before,
+.sidebar-content::after,
+.sidebar-content::before,
+.nav-content::after,
+.nav-content::before,
 .conversation-items-container::after,
 .conversation-items-container::before,
 .nav-content::after,
@@ -215,8 +230,11 @@ mat-sidenav-container {
 /* ================================
    BENTO / FLOATING CARD — Chat area
    Makes the interface feel like an app floating over a desktop
+   Support both Gemini and Qwen selectors
    ================================ */
-.conversation-container {
+.conversation-container,
+.chat-container,
+.message-list {
     margin: 16px !important;
     border-radius: 24px !important;
     background: transparent !important;
@@ -231,7 +249,9 @@ chat-window,
 chat-window-content,
 model-response,
 user-query,
-.response-container {
+.response-container,
+.message,
+.message-content {
     background: transparent !important;
     background-color: transparent !important;
 }
@@ -292,13 +312,48 @@ body.gemini-ext-input-bg input-area-v2 fieldset {
 }
 
 /* ================================
+   GLASSMORPHISM — Sidebar & Input (intensity-based)
+   Uses --gemini-glass-opacity and --gemini-glass-blur CSS vars
+   Higher saturate + top highlight for modern depth
+   GPU-accelerated transitions
+   Support both Gemini and Qwen selectors
+   ================================ */
+body.gemini-ext-glass bard-sidenav,
+body.gemini-ext-glass bard-sidenav[style],
+body.gemini-ext-glass .sidebar,
+body.gemini-ext-glass .side-nav {
+    background: rgba(10, 10, 12, calc(var(--gemini-glass-opacity, 0.55) * 0.9)) !important;
+    background-image: none !important;
+    backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
+    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    /* GPU-accelerated transitions */
+    will-change: border-color, box-shadow, background;
+    transition: border-color 0.4s var(--spring-smooth), box-shadow 0.4s var(--spring-smooth), background 0.4s var(--spring-smooth) !important;
+}
+
+body.gemini-ext-glass side-navigation-content,
+body.gemini-ext-glass .sidebar-content,
+body.gemini-ext-glass .nav-content {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+/* ================================
    GLASSMORPHISM — Deep Glass (intensity-based)
    Uses --gemini-glass-opacity and --gemini-glass-blur CSS vars
    Higher saturate + top highlight for modern depth
    GPU-accelerated transitions
+   Support both Gemini and Qwen selectors
    ================================ */
 body.gemini-ext-glass input-area-v2,
-body.gemini-ext-glass input-area-v2[style] {
+body.gemini-ext-glass input-area-v2[style],
+body.gemini-ext-glass .input-area,
+body.gemini-ext-glass .chat-input,
+body.gemini-ext-glass [class*="input-container"] {
     background: rgba(10, 10, 12, calc(var(--gemini-glass-opacity, 0.55) * 0.9)) !important;
     background-image: none !important;
     backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
@@ -404,8 +459,11 @@ body.gemini-ext-glow input-area-v2 {
 /* ================================
    USER MESSAGE BUBBLES — via CSS var
    GPU-accelerated transitions
+   Support both Gemini and Qwen selectors
    ================================ */
-body.gemini-ext-msg-bg .user-query-bubble-with-background {
+body.gemini-ext-msg-bg .user-query-bubble-with-background,
+body.gemini-ext-msg-bg .message.user,
+body.gemini-ext-msg-bg .user-message {
     background-image:
         linear-gradient(
             rgba(0,0,0, var(--gemini-darkness-msg, 0.6)),
@@ -424,7 +482,9 @@ body.gemini-ext-msg-bg .user-query-bubble-with-background {
 }
 
 body.gemini-ext-msg-bg .user-query-bubble-with-background .query-content,
-body.gemini-ext-msg-bg .user-query-bubble-with-background .query-text {
+body.gemini-ext-msg-bg .user-query-bubble-with-background .query-text,
+body.gemini-ext-msg-bg .message.user .message-content,
+body.gemini-ext-msg-bg .user-message .message-content {
     background: transparent !important;
 }
 

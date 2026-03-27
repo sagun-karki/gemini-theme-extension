@@ -1,4 +1,4 @@
-```
+```gitignore
 # Compiled and build artifacts
 *.pyc
 __pycache__/
@@ -6,40 +6,36 @@ __pycache__/
 *.obj
 dist/
 build/
-target/
 
 # Dependencies
-node_modules/
-venv/
 .venv/
-.env
-.env.local
-.env.*
+venv/
+node_modules/
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
 
+# Environment
+.env
+.env.local
+.env.*
+
 # Editors
 .vscode/
 .idea/
 
-# Coverage
+# Coverage reports
 coverage/
 htmlcov/
 .coverage
 
-# MyPy
-.mypy_cache/
+# OS generated files
+.DS_Store
+Thumbs.db
 
-# Pytest
-.pytest_cache/
-
-# Gradle
-.gradle/
-
-# Compression
+# Compression files
 *.zip
 *.gz
 *.tar
