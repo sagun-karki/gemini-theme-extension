@@ -503,27 +503,28 @@ input-container .mat-mdc-chip:hover,
    ALL 3 DROPDOWNS — Model, Tools, Plus
    ================================ */
 
-/* Model selector dropdown */
-.mat-mdc-menu-panel {
-    background: #1C1C21 !important;
-    backdrop-filter: blur(30px) saturate(1.3) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(1.3) !important;
+/* Model selector dropdown + hamburger menu (Mat menu panels) */
+.mat-mdc-menu-panel,
+.mat-menu-panel {
+    background: rgba(28, 28, 33, clamp(0, calc(var(--gemini-glass-opacity, 0.55) * 1.2), 0.95)) !important;
+    backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
+    -webkit-backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Plus (+) file upload dropdown */
 .upload-file-card-container {
-    background: #1C1C21 !important;
-    backdrop-filter: blur(30px) saturate(1.3) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(1.3) !important;
+    background: rgba(28, 28, 33, clamp(0, calc(var(--gemini-glass-opacity, 0.55) * 1.2), 0.95)) !important;
+    backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
+    -webkit-backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Tools dropdown */
 .toolbox-drawer-card {
-    background: #1C1C21 !important;
-    backdrop-filter: blur(30px) saturate(1.3) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(1.3) !important;
+    background: rgba(28, 28, 33, clamp(0, calc(var(--gemini-glass-opacity, 0.55) * 1.2), 0.95)) !important;
+    backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
+    -webkit-backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
     padding: 6px 0 !important;
     overflow: hidden !important;
