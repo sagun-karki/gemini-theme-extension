@@ -108,7 +108,22 @@
             rose: { mesh1: '#be123c', mesh2: '#f472b6', mesh3: '#fecdd3' },
             citrus: { mesh1: '#16a34a', mesh2: '#facc15', mesh3: '#f97316' },
             storm: { mesh1: '#0f172a', mesh2: '#334155', mesh3: '#94a3b8' },
-            ember: { mesh1: '#7f1d1d', mesh2: '#f43f5e', mesh3: '#fb7185' }
+            ember: { mesh1: '#7f1d1d', mesh2: '#f43f5e', mesh3: '#fb7185' },
+            void: { mesh1: '#0a0a0a', mesh2: '#1a1a1a', mesh3: '#2a2a2a' },
+            obsidian: { mesh1: '#030014', mesh2: '#0f0c29', mesh3: '#1a1a2e' },
+            abyss: { mesh1: '#000428', mesh2: '#004e92', mesh3: '#001f3f' },
+            noir: { mesh1: '#000000', mesh2: '#1c1c1c', mesh3: '#3a3a3a' },
+            phantom: { mesh1: '#1f1c2c', mesh2: '#928dab', mesh3: '#1f1c2c' },
+            shadow: { mesh1: '#232526', mesh2: '#414345', mesh3: '#232526' },
+            eclipse: { mesh1: '#0f0f0f', mesh2: '#1a1a2e', mesh3: '#16213e' },
+            darkmatter: { mesh1: '#090909', mesh2: '#181818', mesh3: '#0d0d0d' },
+            blackhole: { mesh1: '#000000', mesh2: '#0a0a0a', mesh3: '#1a1a1a' },
+            'midnight-ink': { mesh1: '#0a0e27', mesh2: '#1a1f3a', mesh3: '#0f172a' },
+            charcoal: { mesh1: '#1a1a1a', mesh2: '#2d2d2d', mesh3: '#1f1f1f' },
+            'deep-space': { mesh1: '#0b0d17', mesh2: '#151932', mesh3: '#1f294a' },
+            smoke: { mesh1: '#141414', mesh2: '#2a2a2a', mesh3: '#1a1a1a' },
+            onyx: { mesh1: '#0d0d0d', mesh2: '#1f1f1f', mesh3: '#0a0a0a' },
+            twilight: { mesh1: '#0f0c29', mesh2: '#302b63', mesh3: '#24243e' }
         };
 
         const preset = gradientPresets[stateCache.gradientPreset] || gradientPresets.default;
