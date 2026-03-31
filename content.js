@@ -144,7 +144,6 @@
         document.body.classList.toggle('gemini-ext-glass', stateCache.glassIntensity > 0);
         document.body.classList.toggle('gemini-ext-glow', stateCache.glowIntensity > 0);
         document.body.classList.toggle('gemini-zen-mode', stateCache.zenMode);
-        document.body.classList.toggle('gemini-ext-bg', !!stateCache.bgUrl);
         document.body.classList.toggle('gemini-ext-sidebar-bg', !!stateCache.sidebarBg);
         document.body.classList.toggle('gemini-ext-input-bg', !!stateCache.inputBg && stateCache.glassIntensity === 0);
         document.body.classList.toggle('gemini-ext-msg-bg', !!stateCache.msgBg);
