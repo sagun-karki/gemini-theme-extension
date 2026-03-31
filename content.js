@@ -10,7 +10,7 @@
  * - Per-zone darkness overlays via CSS vars
  * - Ambient focus glow (CSS-only, no JS caret tracking)
  * - Glassmorphism via CSS vars
- * - Multiple gradient presets (default, sunset, ocean, aurora, neon, forest, midnight)
+ * - Gradient presets (15 options)
  */
 
 (() => {
@@ -26,34 +26,32 @@
         inputBg: null,
         msgBg: null,
         backgroundsEnabled: true,
-        hideUpgrade: false,
         zenMode: false,
-        glassIntensity: 0,
-        glassBlur: 24,
+        glassIntensity: 100,
+        glassBlur: 60,
         glowIntensity: 0,
         glowColor: '#a855f7',
         darknessBg: 0.6,
         darknessSidebar: 0.6,
         darknessInput: 0.6,
         darknessMsg: 0.6,
-        gradientPreset: 'default' // default, sunset, ocean, aurora, neon, forest, midnight
+        gradientPreset: 'default'
     };
 
     // === LOAD SETTINGS FROM STORAGE (single fetch, populate cache) ===
     function loadStateFromStorage(callback) {
         chrome.storage.local.get([
             'bg_custom', 'sidebar_custom', 'input_custom', 'msg_custom',
-            'backgrounds_enabled', 'hide_upgrade', 'zen_mode',
+            'zen_mode',
             'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color',
             'darkness_bg', 'darkness_sidebar', 'darkness_input', 'darkness_msg',
             'gradient_preset'
         ], (data) => {
-            // Update cache
-            stateCache.backgroundsEnabled = data.backgrounds_enabled !== false;
-            stateCache.hideUpgrade = data.hide_upgrade === true;
+            // Update cache - backgrounds always enabled now (gradient only)
+            stateCache.backgroundsEnabled = true;
             stateCache.zenMode = data.zen_mode === true;
-            stateCache.glassIntensity = data.glass_intensity ?? 0;
-            stateCache.glassBlur = data.glass_blur ?? 24;
+            stateCache.glassIntensity = data.glass_intensity ?? 100;
+            stateCache.glassBlur = data.glass_blur ?? 60;
             stateCache.glowIntensity = data.glow_intensity ?? 0;
             stateCache.glowColor = data.glow_color ?? '#a855f7';
             stateCache.gradientPreset = data.gradient_preset ?? 'default';
@@ -64,18 +62,11 @@
             stateCache.darknessInput = (data.darkness_input ?? 60) / 100;
             stateCache.darknessMsg = (data.darkness_msg ?? 60) / 100;
 
-            // Background URLs (only if enabled)
-            if (stateCache.backgroundsEnabled) {
-                stateCache.bgUrl = data.bg_custom || null;
-                stateCache.sidebarBg = data.sidebar_custom || null;
-                stateCache.inputBg = data.input_custom || null;
-                stateCache.msgBg = data.msg_custom || null;
-            } else {
-                stateCache.bgUrl = null;
-                stateCache.sidebarBg = null;
-                stateCache.inputBg = null;
-                stateCache.msgBg = null;
-            }
+            // Background URLs not used anymore - gradient only
+            stateCache.bgUrl = null;
+            stateCache.sidebarBg = null;
+            stateCache.inputBg = null;
+            stateCache.msgBg = null;
 
             if (callback) callback();
         });
@@ -96,13 +87,21 @@
 
         // Gradient preset colors
         const gradientPresets = {
-            default: { mesh1: '#4f46e5', mesh2: '#c026d3', mesh3: '#0891b2' }, // Indigo, Fuchsia, Cyan
-            sunset: { mesh1: '#f97316', mesh2: '#ec4899', mesh3: '#a855f7' }, // Orange, Pink, Purple
-            ocean: { mesh1: '#0ea5e9', mesh2: '#14b8a6', mesh3: '#22c55e' }, // Sky, Teal, Green
-            aurora: { mesh1: '#22c55e', mesh2: '#14b8a6', mesh3: '#3b82f6' }, // Green, Teal, Blue
-            neon: { mesh1: '#f43f5e', mesh2: '#8b5cf6', mesh3: '#06b6d4' }, // Rose, Violet, Cyan
-            forest: { mesh1: '#166534', mesh2: '#15803d', mesh3: '#84cc16' }, // Dark Green, Green, Lime
-            midnight: { mesh1: '#1e3a8a', mesh2: '#4c1d95', mesh3: '#581c87' } // Navy, Deep Purple, Purple
+            default: { mesh1: '#4f46e5', mesh2: '#c026d3', mesh3: '#0891b2' },
+            sunset: { mesh1: '#f97316', mesh2: '#ec4899', mesh3: '#a855f7' },
+            ocean: { mesh1: '#0ea5e9', mesh2: '#14b8a6', mesh3: '#22c55e' },
+            aurora: { mesh1: '#22c55e', mesh2: '#14b8a6', mesh3: '#3b82f6' },
+            neon: { mesh1: '#f43f5e', mesh2: '#8b5cf6', mesh3: '#06b6d4' },
+            forest: { mesh1: '#166534', mesh2: '#15803d', mesh3: '#84cc16' },
+            midnight: { mesh1: '#1e3a8a', mesh2: '#4c1d95', mesh3: '#581c87' },
+            dusk: { mesh1: '#7c3aed', mesh2: '#f472b6', mesh3: '#f59e0b' },
+            lava: { mesh1: '#b91c1c', mesh2: '#f97316', mesh3: '#facc15' },
+            glacier: { mesh1: '#0f172a', mesh2: '#38bdf8', mesh3: '#e0f2fe' },
+            espresso: { mesh1: '#2f1b0c', mesh2: '#6b3f2a', mesh3: '#a9745c' },
+            rose: { mesh1: '#be123c', mesh2: '#f472b6', mesh3: '#fecdd3' },
+            citrus: { mesh1: '#16a34a', mesh2: '#facc15', mesh3: '#f97316' },
+            storm: { mesh1: '#0f172a', mesh2: '#334155', mesh3: '#94a3b8' },
+            ember: { mesh1: '#7f1d1d', mesh2: '#f43f5e', mesh3: '#fb7185' }
         };
 
         const preset = gradientPresets[stateCache.gradientPreset] || gradientPresets.default;
@@ -137,12 +136,7 @@
         // Toggle body classes — CSS rules key off these
         document.body.classList.toggle('gemini-ext-glass', stateCache.glassIntensity > 0);
         document.body.classList.toggle('gemini-ext-glow', stateCache.glowIntensity > 0);
-        document.body.classList.toggle('gemini-ext-hide-upgrade', stateCache.hideUpgrade);
         document.body.classList.toggle('gemini-zen-mode', stateCache.zenMode);
-        document.body.classList.toggle('gemini-ext-bg', !!stateCache.bgUrl);
-        document.body.classList.toggle('gemini-ext-sidebar-bg', !!stateCache.sidebarBg);
-        document.body.classList.toggle('gemini-ext-input-bg', !!stateCache.inputBg && stateCache.glassIntensity === 0);
-        document.body.classList.toggle('gemini-ext-msg-bg', !!stateCache.msgBg);
     }
 
     // === FULL REFRESH (re-fetch from storage, update cache, reapply) ===

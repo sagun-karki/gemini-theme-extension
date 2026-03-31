@@ -9,9 +9,10 @@
 
 :root {
     --font-main: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    --mesh-1: var(--gemini-mesh-1, #4f46e5); /* Dynamic from JS */
-    --mesh-2: var(--gemini-mesh-2, #c026d3); /* Dynamic from JS */
-    --mesh-3: var(--gemini-mesh-3, #0891b2); /* Dynamic from JS */
+    /* Mesh gradient colors - fallbacks only, actual values set by JS */
+    --gemini-mesh-1: #4f46e5;
+    --gemini-mesh-2: #c026d3;
+    --gemini-mesh-3: #0891b2;
     --spring-smooth: cubic-bezier(0.25, 0.1, 0.25, 1.0); /* Custom ease-out */
     --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* Subtle bounce */
 }
@@ -40,41 +41,30 @@ body::before {
     top: 0; left: 0; width: 100%; height: 100%;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
     pointer-events: none;
-    z-index: 99999;
+    z-index: 9999;
     mix-blend-mode: overlay;
 }
 
 /* ================================
-   DYNAMIC MESH GRADIENT — Default BG when no custom wallpaper
+   DYNAMIC MESH GRADIENT — Always active background
    Animated CSS multiple radial gradients
    ================================ */
 body {
     background-color: #050505 !important;
+    position: relative;
 }
 
-body.gemini-ext-bg {
-    background-image:
-        linear-gradient(
-            rgba(0,0,0, var(--gemini-darkness-bg, 0.6)),
-            rgba(0,0,0, var(--gemini-darkness-bg, 0.6))
-        ),
-        var(--gemini-bg-url, none) !important;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
-}
-
-body:not(.gemini-ext-bg)::after {
+/* === MESH GRADIENT ANIMATION (always active) === */
+body::after {
     content: '';
     position: fixed;
     inset: -50%;
     background: 
-        radial-gradient(circle at 15% 50%, var(--mesh-1), transparent 40%),
-        radial-gradient(circle at 85% 30%, var(--mesh-2), transparent 40%),
-        radial-gradient(circle at 50% 80%, var(--mesh-3), transparent 40%);
+        radial-gradient(circle at 15% 50%, var(--gemini-mesh-1, #4f46e5), transparent 40%),
+        radial-gradient(circle at 85% 30%, var(--gemini-mesh-2, #c026d3), transparent 40%),
+        radial-gradient(circle at 50% 80%, var(--gemini-mesh-3, #0891b2), transparent 40%);
     filter: blur(80px);
-    opacity: 0.25;
+    opacity: 0.35;
     animation: mesh-drift 20s ease-in-out infinite alternate;
     z-index: -1;
     pointer-events: none;
@@ -82,6 +72,11 @@ body:not(.gemini-ext-bg)::after {
     will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
+}
+
+body > * {
+    position: relative;
+    z-index: 1;
 }
 
 @keyframes mesh-drift {
@@ -125,7 +120,7 @@ bard-sidenav[style],
     height: calc(100vh - 24px) !important;
     left: 0 !important;
     top: 0 !important;
-    background: #1a1a1d !important;
+    background: rgba(26, 26, 29, 0.85) !important;
     border: none !important;
     border-right: none !important;
     border-right-width: 0px !important;
@@ -135,25 +130,14 @@ bard-sidenav[style],
     overflow: hidden !important;
 }
 
-/* Sidebar background image via CSS var */
-body.gemini-ext-sidebar-bg bard-sidenav,
-body.gemini-ext-sidebar-bg bard-sidenav[style],
-body.gemini-ext-sidebar-bg .sidebar,
-body.gemini-ext-sidebar-bg .side-nav {
-    background-image:
-        linear-gradient(
-            rgba(0,0,0, var(--gemini-darkness-sidebar, 0.6)),
-            rgba(0,0,0, var(--gemini-darkness-sidebar, 0.6))
-        ),
-        var(--gemini-sidebar-bg, none) !important;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-color: transparent !important;
-    box-shadow:
-        0 2px 16px rgba(0, 0, 0, 0.3),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+/* Sidebar - semi-transparent to show gradient */
+bard-sidenav,
+.sidebar,
+.side-nav {
+    background: rgba(26, 26, 29, 0.85) !important;
+    backdrop-filter: blur(10px);
 }
+
 
 /* Inner content inherits rounded corners + breathing room */
 side-navigation-content,
@@ -216,7 +200,7 @@ bard-sidenav-content {
     outline: none !important;
 }
 
-/* Content area background — transparent for bg image */
+/* Content area background — transparent to show gradient */
 mat-sidenav-content,
 bard-sidenav-content,
 .mat-drawer-content,
@@ -282,31 +266,24 @@ input-container {
 }
 
 /* ================================
-   INPUT FIELD — Background image via CSS var
+   INPUT FIELD — Semi-transparent for gradient visibility
    ================================ */
-body.gemini-ext-input-bg input-area-v2,
-body.gemini-ext-input-bg input-area-v2[style] {
-    background-image:
-        linear-gradient(
-            rgba(0,0,0, var(--gemini-darkness-input, 0.6)),
-            rgba(0,0,0, var(--gemini-darkness-input, 0.6))
-        ),
-        var(--gemini-input-bg, none) !important;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-color: transparent !important;
+input-area-v2,
+.input-area {
+    background: rgba(30, 30, 35, 0.85) !important;
+    backdrop-filter: blur(10px);
     overflow: hidden !important;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
     transition: box-shadow 0.3s ease !important;
 }
 
-body.gemini-ext-input-bg input-area-v2:hover,
-body.gemini-ext-input-bg input-area-v2[style]:hover {
+input-area-v2:hover,
+.input-area:hover {
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18) !important;
 }
 
-body.gemini-ext-input-bg input-area-v2 fieldset {
+input-area-v2 fieldset,
+.input-area fieldset {
     background: transparent !important;
     background-color: transparent !important;
 }
@@ -324,8 +301,8 @@ body.gemini-ext-glass .sidebar,
 body.gemini-ext-glass .side-nav {
     background: rgba(10, 10, 12, calc(var(--gemini-glass-opacity, 0.55) * 0.9)) !important;
     background-image: none !important;
-    backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
-    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
+    backdrop-filter: blur(var(--gemini-glass-blur, 60px)) saturate(180%) contrast(110%) !important;
+    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 60px)) saturate(180%) contrast(110%) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     box-shadow:
         0 4px 24px rgba(0, 0, 0, 0.4),
@@ -356,8 +333,8 @@ body.gemini-ext-glass .chat-input,
 body.gemini-ext-glass [class*="input-container"] {
     background: rgba(10, 10, 12, calc(var(--gemini-glass-opacity, 0.55) * 0.9)) !important;
     background-image: none !important;
-    backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
-    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
+    backdrop-filter: blur(var(--gemini-glass-blur, 60px)) saturate(180%) contrast(110%) !important;
+    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 60px)) saturate(180%) contrast(110%) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 24px !important;
     box-shadow:
@@ -461,19 +438,11 @@ body.gemini-ext-glow input-area-v2 {
    GPU-accelerated transitions
    Support both Gemini and Qwen selectors
    ================================ */
-body.gemini-ext-msg-bg .user-query-bubble-with-background,
-body.gemini-ext-msg-bg .message.user,
-body.gemini-ext-msg-bg .user-message {
-    background-image:
-        linear-gradient(
-            rgba(0,0,0, var(--gemini-darkness-msg, 0.6)),
-            rgba(0,0,0, var(--gemini-darkness-msg, 0.6))
-        ),
-        var(--gemini-msg-bg, none) !important;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-color: transparent !important;
+.user-query-bubble-with-background,
+.message.user,
+.user-message {
+    background: rgba(80, 80, 90, 0.7) !important;
+    backdrop-filter: blur(10px);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
     /* GPU acceleration for smooth rendering */
     will-change: transform;
@@ -481,10 +450,10 @@ body.gemini-ext-msg-bg .user-message {
     backface-visibility: hidden;
 }
 
-body.gemini-ext-msg-bg .user-query-bubble-with-background .query-content,
-body.gemini-ext-msg-bg .user-query-bubble-with-background .query-text,
-body.gemini-ext-msg-bg .message.user .message-content,
-body.gemini-ext-msg-bg .user-message .message-content {
+.user-query-bubble-with-background .query-content,
+.user-query-bubble-with-background .query-text,
+.message.user .message-content,
+.user-message .message-content {
     background: transparent !important;
 }
 
@@ -534,27 +503,28 @@ input-container .mat-mdc-chip:hover,
    ALL 3 DROPDOWNS — Model, Tools, Plus
    ================================ */
 
-/* Model selector dropdown */
-.mat-mdc-menu-panel {
-    background: #1C1C21 !important;
-    backdrop-filter: blur(30px) saturate(1.3) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(1.3) !important;
+/* Model selector dropdown + hamburger menu (Mat menu panels) */
+.mat-mdc-menu-panel,
+.mat-menu-panel {
+    background: rgba(28, 28, 33, clamp(0, calc(var(--gemini-glass-opacity, 0.55) * 1.2), 0.95)) !important;
+    backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
+    -webkit-backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Plus (+) file upload dropdown */
 .upload-file-card-container {
-    background: #1C1C21 !important;
-    backdrop-filter: blur(30px) saturate(1.3) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(1.3) !important;
+    background: rgba(28, 28, 33, clamp(0, calc(var(--gemini-glass-opacity, 0.55) * 1.2), 0.95)) !important;
+    backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
+    -webkit-backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Tools dropdown */
 .toolbox-drawer-card {
-    background: #1C1C21 !important;
-    backdrop-filter: blur(30px) saturate(1.3) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(1.3) !important;
+    background: rgba(28, 28, 33, clamp(0, calc(var(--gemini-glass-opacity, 0.55) * 1.2), 0.95)) !important;
+    backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
+    -webkit-backdrop-filter: blur(calc(var(--gemini-glass-blur, 60px) * 1.35)) saturate(1.3) !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
     padding: 6px 0 !important;
     overflow: hidden !important;
@@ -801,7 +771,7 @@ code-immersive-panel toolbar .title-text {
 
 /* Code / Preview toggle */
 code-immersive-panel .tab-group {
-    background: #1a1a1d !important;
+    background: rgba(26, 26, 29, 0.85) !important;
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
     border-radius: 8px !important;
 }
@@ -840,7 +810,7 @@ code-immersive-panel console .container {
 
 /* Floating toolbar */
 code-immersive-panel floating-toolbar .container {
-    background: #1a1a1d !important;
+    background: rgba(26, 26, 29, 0.85) !important;
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
     border-radius: 12px !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
@@ -881,16 +851,6 @@ immersive-entry-chip .container {
 immersive-entry-chip .container:hover {
     background: rgba(28, 28, 33, 0.85) !important;
     border-color: rgba(255, 255, 255, 0.12) !important;
-}
-
-/* ================================
-   HIDE UPGRADE BUTTON (toggle-controlled)
-   ================================ */
-body.gemini-ext-hide-upgrade [data-test-id="bard-g1-dynamic-upsell-menu-button"],
-body.gemini-ext-hide-upgrade [data-test-id="bard-upsell-menu-button-icon"],
-body.gemini-ext-hide-upgrade .dynamic-upsell-label,
-body.gemini-ext-hide-upgrade button[aria-label][jslog*="246609"] {
-    display: none !important;
 }
 
 /* ================================
