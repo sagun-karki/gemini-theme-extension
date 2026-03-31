@@ -37,29 +37,20 @@
             </label>
         </div>
 
-        <!-- Hide Upgrade Button Toggle -->
-        <div class="toggle-row">
-            <span class="toggle-label">Hide Upgrade Button</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="toggle-hide-upgrade">
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-
         <!-- Glass & Glow Settings -->
         <div class="fx-section">
             <div class="fx-section-title">Glass & Glow</div>
 
             <div class="fx-slider-row">
                 <span class="fx-label">Glass</span>
-                <input type="range" id="glass-intensity" min="0" max="100" value="0" step="5">
-                <span class="fx-value" id="glass-intensity-value">0%</span>
+                <input type="range" id="glass-intensity" min="0" max="100" value="100" step="5">
+                <span class="fx-value" id="glass-intensity-value">100%</span>
             </div>
 
             <div class="fx-slider-row" id="glass-blur-row">
                 <span class="fx-label">Blur</span>
-                <input type="range" id="glass-blur-slider" min="0" max="40" value="24" step="2">
-                <span class="fx-value" id="glass-blur-value">24px</span>
+                <input type="range" id="glass-blur-slider" min="0" max="80" value="60" step="2">
+                <span class="fx-value" id="glass-blur-value">60px</span>
             </div>
 
             <div class="fx-divider"></div>
@@ -87,7 +78,7 @@
 
         <!-- Gradient Presets -->
         <div class="fx-section">
-            <div class="fx-section-title">Gradient Theme</div>
+            <div class="fx-section-title">Gradient Presets</div>
             <div class="gradient-presets" id="gradient-presets">
                 <button class="gradient-dot active" data-gradient="default" style="background: linear-gradient(135deg, #4f46e5, #c026d3, #0891b2)" title="Default"></button>
                 <button class="gradient-dot" data-gradient="sunset" style="background: linear-gradient(135deg, #f97316, #ec4899, #a855f7)" title="Sunset"></button>
@@ -96,6 +87,14 @@
                 <button class="gradient-dot" data-gradient="neon" style="background: linear-gradient(135deg, #f43f5e, #8b5cf6, #06b6d4)" title="Neon"></button>
                 <button class="gradient-dot" data-gradient="forest" style="background: linear-gradient(135deg, #166534, #15803d, #84cc16)" title="Forest"></button>
                 <button class="gradient-dot" data-gradient="midnight" style="background: linear-gradient(135deg, #1e3a8a, #4c1d95, #581c87)" title="Midnight"></button>
+                <button class="gradient-dot" data-gradient="dusk" style="background: linear-gradient(135deg, #7c3aed, #f472b6, #f59e0b)" title="Dusk"></button>
+                <button class="gradient-dot" data-gradient="lava" style="background: linear-gradient(135deg, #b91c1c, #f97316, #facc15)" title="Lava"></button>
+                <button class="gradient-dot" data-gradient="glacier" style="background: linear-gradient(135deg, #0f172a, #38bdf8, #e0f2fe)" title="Glacier"></button>
+                <button class="gradient-dot" data-gradient="espresso" style="background: linear-gradient(135deg, #2f1b0c, #6b3f2a, #a9745c)" title="Espresso"></button>
+                <button class="gradient-dot" data-gradient="rose" style="background: linear-gradient(135deg, #be123c, #f472b6, #fecdd3)" title="Rose"></button>
+                <button class="gradient-dot" data-gradient="citrus" style="background: linear-gradient(135deg, #16a34a, #facc15, #f97316)" title="Citrus"></button>
+                <button class="gradient-dot" data-gradient="storm" style="background: linear-gradient(135deg, #0f172a, #334155, #94a3b8)" title="Storm"></button>
+                <button class="gradient-dot" data-gradient="ember" style="background: linear-gradient(135deg, #7f1d1d, #f43f5e, #fb7185)" title="Ember"></button>
             </div>
         </div>
 

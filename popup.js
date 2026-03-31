@@ -3,7 +3,7 @@
  * - OffscreenCanvas for non-blocking image processing
  * - Debounced slider saves to prevent storage spam
  * - Per-zone darkness sliders + drag & drop + storage + auto-reload
- * - Multiple gradient presets (default, sunset, ocean, aurora, neon, forest, midnight)
+ * - Gradient presets (15 options)
  */
 
 (() => {
@@ -15,7 +15,6 @@
     const PREVIEW_IDS = ['preview-bg', 'preview-sidebar', 'preview-input', 'preview-msg'];
 
     const toggleInput = document.getElementById('toggle-backgrounds');
-    const toggleHideUpgrade = document.getElementById('toggle-hide-upgrade');
     const toggleZenMode = document.getElementById('toggle-zen-mode');
     
     // Glass & Glow elements
@@ -30,10 +29,10 @@
     const glowPresets = document.getElementById('glow-presets');
     const glowColorCustom = document.getElementById('glow-color-custom');
     const zonesContainer = document.getElementById('zones-container');
-    
+
     // Gradient presets
     const gradientPresets = document.getElementById('gradient-presets');
-
+    
     // All per-zone darkness sliders
     const darknessSliders = document.querySelectorAll('.darkness-slider');
 
@@ -82,26 +81,23 @@
 
     // === LOAD STATE ===
     function loadState() {
-        chrome.storage.local.get([...KEYS, ...DARKNESS_KEYS, 'backgrounds_enabled', 'hide_upgrade', 'zen_mode',
+        chrome.storage.local.get([...KEYS, ...DARKNESS_KEYS, 'backgrounds_enabled', 'zen_mode',
             'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color', 'gradient_preset'], (data) => {
             // Toggle
             const enabled = data.backgrounds_enabled !== false;
             toggleInput.checked = enabled;
             updateDisabledState(enabled);
 
-            // Hide Upgrade toggle
-            toggleHideUpgrade.checked = data.hide_upgrade === true;
-
             // Zen Mode toggle
             toggleZenMode.checked = data.zen_mode === true;
 
             // Glass intensity (0-100)
-            const gi = data.glass_intensity ?? 0;
+            const gi = data.glass_intensity ?? 100;
             glassIntensity.value = gi;
             glassIntensityValue.textContent = gi + '%';
             updateBlurRowState(gi > 0);
 
-            const blur = data.glass_blur ?? 24;
+            const blur = data.glass_blur ?? 60;
             glassBlurSlider.value = blur;
             glassBlurValue.textContent = blur + 'px';
 
@@ -270,14 +266,6 @@
         });
     });
 
-    // === HIDE UPGRADE TOGGLE ===
-    toggleHideUpgrade.addEventListener('change', () => {
-        const hide = toggleHideUpgrade.checked;
-        chrome.storage.local.set({ hide_upgrade: hide }, () => {
-            refreshGeminiTabs();
-        });
-    });
-
     // === ZEN MODE TOGGLE ===
     toggleZenMode.addEventListener('change', () => {
         const zen = toggleZenMode.checked;
@@ -349,13 +337,12 @@
         });
     });
 
-    // === GRADIENT PRESETS (debounced save) ===
+    // === GRADIENT PRESETS ===
     gradientPresets.querySelectorAll('.gradient-dot').forEach(dot => {
         dot.addEventListener('click', () => {
             const preset = dot.dataset.gradient;
             setActiveGradientPreset(preset);
             chrome.storage.local.set({ gradient_preset: preset }, () => {
-                // Send message to active tabs to update gradient immediately
                 chrome.tabs.query({ url: 'https://gemini.google.com/*' }, (tabs) => {
                     tabs.forEach(tab => {
                         chrome.tabs.sendMessage(tab.id, { type: 'SET_GRADIENT', preset });

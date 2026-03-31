@@ -50,6 +50,7 @@ body::before {
    ================================ */
 body {
     background-color: #050505 !important;
+    position: relative;
 }
 
 body.gemini-ext-bg {
@@ -65,7 +66,7 @@ body.gemini-ext-bg {
     background-attachment: fixed !important;
 }
 
-body:not(.gemini-ext-bg)::after {
+body::after {
     content: '';
     position: fixed;
     inset: -50%;
@@ -76,12 +77,21 @@ body:not(.gemini-ext-bg)::after {
     filter: blur(80px);
     opacity: 0.25;
     animation: mesh-drift 20s ease-in-out infinite alternate;
-    z-index: -1;
+    z-index: 0;
     pointer-events: none;
     /* GPU acceleration for smooth animation */
     will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
+}
+
+body.gemini-ext-bg::after {
+    opacity: 0.18;
+}
+
+body > * {
+    position: relative;
+    z-index: 1;
 }
 
 @keyframes mesh-drift {
@@ -324,8 +334,8 @@ body.gemini-ext-glass .sidebar,
 body.gemini-ext-glass .side-nav {
     background: rgba(10, 10, 12, calc(var(--gemini-glass-opacity, 0.55) * 0.9)) !important;
     background-image: none !important;
-    backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
-    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
+    backdrop-filter: blur(var(--gemini-glass-blur, 60px)) saturate(180%) contrast(110%) !important;
+    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 60px)) saturate(180%) contrast(110%) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     box-shadow:
         0 4px 24px rgba(0, 0, 0, 0.4),
@@ -356,8 +366,8 @@ body.gemini-ext-glass .chat-input,
 body.gemini-ext-glass [class*="input-container"] {
     background: rgba(10, 10, 12, calc(var(--gemini-glass-opacity, 0.55) * 0.9)) !important;
     background-image: none !important;
-    backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
-    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 24px)) saturate(180%) contrast(110%) !important;
+    backdrop-filter: blur(var(--gemini-glass-blur, 60px)) saturate(180%) contrast(110%) !important;
+    -webkit-backdrop-filter: blur(var(--gemini-glass-blur, 60px)) saturate(180%) contrast(110%) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 24px !important;
     box-shadow:
@@ -881,16 +891,6 @@ immersive-entry-chip .container {
 immersive-entry-chip .container:hover {
     background: rgba(28, 28, 33, 0.85) !important;
     border-color: rgba(255, 255, 255, 0.12) !important;
-}
-
-/* ================================
-   HIDE UPGRADE BUTTON (toggle-controlled)
-   ================================ */
-body.gemini-ext-hide-upgrade [data-test-id="bard-g1-dynamic-upsell-menu-button"],
-body.gemini-ext-hide-upgrade [data-test-id="bard-upsell-menu-button-icon"],
-body.gemini-ext-hide-upgrade .dynamic-upsell-label,
-body.gemini-ext-hide-upgrade button[aria-label][jslog*="246609"] {
-    display: none !important;
 }
 
 /* ================================
