@@ -130,25 +130,14 @@ bard-sidenav[style],
     overflow: hidden !important;
 }
 
-/* Sidebar background image via CSS var */
-body.gemini-ext-sidebar-bg bard-sidenav,
-body.gemini-ext-sidebar-bg bard-sidenav[style],
-body.gemini-ext-sidebar-bg .sidebar,
-body.gemini-ext-sidebar-bg .side-nav {
-    background-image:
-        linear-gradient(
-            rgba(0,0,0, var(--gemini-darkness-sidebar, 0.6)),
-            rgba(0,0,0, var(--gemini-darkness-sidebar, 0.6))
-        ),
-        var(--gemini-sidebar-bg, none) !important;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-color: transparent !important;
-    box-shadow:
-        0 2px 16px rgba(0, 0, 0, 0.3),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+/* Sidebar - semi-transparent to show gradient */
+bard-sidenav,
+.sidebar,
+.side-nav {
+    background: rgba(26, 26, 29, 0.85) !important;
+    backdrop-filter: blur(10px);
 }
+
 
 /* Inner content inherits rounded corners + breathing room */
 side-navigation-content,
@@ -277,31 +266,24 @@ input-container {
 }
 
 /* ================================
-   INPUT FIELD — Background image via CSS var
+   INPUT FIELD — Semi-transparent for gradient visibility
    ================================ */
-body.gemini-ext-input-bg input-area-v2,
-body.gemini-ext-input-bg input-area-v2[style] {
-    background-image:
-        linear-gradient(
-            rgba(0,0,0, var(--gemini-darkness-input, 0.6)),
-            rgba(0,0,0, var(--gemini-darkness-input, 0.6))
-        ),
-        var(--gemini-input-bg, none) !important;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-color: transparent !important;
+input-area-v2,
+.input-area {
+    background: rgba(30, 30, 35, 0.85) !important;
+    backdrop-filter: blur(10px);
     overflow: hidden !important;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
     transition: box-shadow 0.3s ease !important;
 }
 
-body.gemini-ext-input-bg input-area-v2:hover,
-body.gemini-ext-input-bg input-area-v2[style]:hover {
+input-area-v2:hover,
+.input-area:hover {
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18) !important;
 }
 
-body.gemini-ext-input-bg input-area-v2 fieldset {
+input-area-v2 fieldset,
+.input-area fieldset {
     background: transparent !important;
     background-color: transparent !important;
 }
@@ -456,19 +438,11 @@ body.gemini-ext-glow input-area-v2 {
    GPU-accelerated transitions
    Support both Gemini and Qwen selectors
    ================================ */
-body.gemini-ext-msg-bg .user-query-bubble-with-background,
-body.gemini-ext-msg-bg .message.user,
-body.gemini-ext-msg-bg .user-message {
-    background-image:
-        linear-gradient(
-            rgba(0,0,0, var(--gemini-darkness-msg, 0.6)),
-            rgba(0,0,0, var(--gemini-darkness-msg, 0.6))
-        ),
-        var(--gemini-msg-bg, none) !important;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-    background-color: transparent !important;
+.user-query-bubble-with-background,
+.message.user,
+.user-message {
+    background: rgba(80, 80, 90, 0.7) !important;
+    backdrop-filter: blur(10px);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
     /* GPU acceleration for smooth rendering */
     will-change: transform;
@@ -476,10 +450,10 @@ body.gemini-ext-msg-bg .user-message {
     backface-visibility: hidden;
 }
 
-body.gemini-ext-msg-bg .user-query-bubble-with-background .query-content,
-body.gemini-ext-msg-bg .user-query-bubble-with-background .query-text,
-body.gemini-ext-msg-bg .message.user .message-content,
-body.gemini-ext-msg-bg .user-message .message-content {
+.user-query-bubble-with-background .query-content,
+.user-query-bubble-with-background .query-text,
+.message.user .message-content,
+.user-message .message-content {
     background: transparent !important;
 }
 

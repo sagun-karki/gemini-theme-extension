@@ -14,7 +14,6 @@
     const ZONE_IDS = ['zone-bg', 'zone-sidebar', 'zone-input', 'zone-msg'];
     const PREVIEW_IDS = ['preview-bg', 'preview-sidebar', 'preview-input', 'preview-msg'];
 
-    const toggleInput = document.getElementById('toggle-backgrounds');
     const toggleZenMode = document.getElementById('toggle-zen-mode');
     
     // Glass & Glow elements
@@ -28,7 +27,6 @@
     const glowColorRow = document.getElementById('glow-color-row');
     const glowPresets = document.getElementById('glow-presets');
     const glowColorCustom = document.getElementById('glow-color-custom');
-    const zonesContainer = document.getElementById('zones-container');
 
     // Gradient presets
     const gradientPresets = document.getElementById('gradient-presets');
@@ -81,13 +79,8 @@
 
     // === LOAD STATE ===
     function loadState() {
-        chrome.storage.local.get([...KEYS, ...DARKNESS_KEYS, 'backgrounds_enabled', 'zen_mode',
+        chrome.storage.local.get([...KEYS, ...DARKNESS_KEYS, 'zen_mode',
             'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color', 'gradient_preset'], (data) => {
-            // Toggle
-            const enabled = data.backgrounds_enabled !== false;
-            toggleInput.checked = enabled;
-            updateDisabledState(enabled);
-
             // Zen Mode toggle
             toggleZenMode.checked = data.zen_mode === true;
 
@@ -160,14 +153,6 @@
         });
     }
 
-    function updateDisabledState(enabled) {
-        if (enabled) {
-            zonesContainer.classList.remove('disabled');
-        } else {
-            zonesContainer.classList.add('disabled');
-        }
-    }
-
     function showPreview(zoneId, previewId, dataUrl) {
         const zone = document.getElementById(zoneId);
         const preview = document.getElementById(previewId);
@@ -222,6 +207,7 @@
     // === SETUP DROP ZONES ===
     ZONE_IDS.forEach((zoneId, index) => {
         const zone = document.getElementById(zoneId);
+        if (!zone) return; // Zone elements removed from HTML
         const fileInput = zone.querySelector('.zone-input');
         const resetBtn = zone.querySelector('.zone-reset');
 
@@ -254,15 +240,6 @@
                 clearPreview(zoneId, PREVIEW_IDS[index]);
                 refreshGeminiTabs();
             });
-        });
-    });
-
-    // === TOGGLE ===
-    toggleInput.addEventListener('change', () => {
-        const enabled = toggleInput.checked;
-        chrome.storage.local.set({ backgrounds_enabled: enabled }, () => {
-            updateDisabledState(enabled);
-            refreshGeminiTabs();
         });
     });
 

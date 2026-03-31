@@ -42,13 +42,13 @@
     function loadStateFromStorage(callback) {
         chrome.storage.local.get([
             'bg_custom', 'sidebar_custom', 'input_custom', 'msg_custom',
-            'backgrounds_enabled', 'zen_mode',
+            'zen_mode',
             'glass_intensity', 'glass_blur', 'glow_intensity', 'glow_color',
             'darkness_bg', 'darkness_sidebar', 'darkness_input', 'darkness_msg',
             'gradient_preset'
         ], (data) => {
-            // Update cache
-            stateCache.backgroundsEnabled = data.backgrounds_enabled !== false;
+            // Update cache - backgrounds always enabled now (gradient only)
+            stateCache.backgroundsEnabled = true;
             stateCache.zenMode = data.zen_mode === true;
             stateCache.glassIntensity = data.glass_intensity ?? 100;
             stateCache.glassBlur = data.glass_blur ?? 60;
@@ -62,18 +62,11 @@
             stateCache.darknessInput = (data.darkness_input ?? 60) / 100;
             stateCache.darknessMsg = (data.darkness_msg ?? 60) / 100;
 
-            // Background URLs (only if enabled)
-            if (stateCache.backgroundsEnabled) {
-                stateCache.bgUrl = data.bg_custom || null;
-                stateCache.sidebarBg = data.sidebar_custom || null;
-                stateCache.inputBg = data.input_custom || null;
-                stateCache.msgBg = data.msg_custom || null;
-            } else {
-                stateCache.bgUrl = null;
-                stateCache.sidebarBg = null;
-                stateCache.inputBg = null;
-                stateCache.msgBg = null;
-            }
+            // Background URLs not used anymore - gradient only
+            stateCache.bgUrl = null;
+            stateCache.sidebarBg = null;
+            stateCache.inputBg = null;
+            stateCache.msgBg = null;
 
             if (callback) callback();
         });
@@ -144,9 +137,6 @@
         document.body.classList.toggle('gemini-ext-glass', stateCache.glassIntensity > 0);
         document.body.classList.toggle('gemini-ext-glow', stateCache.glowIntensity > 0);
         document.body.classList.toggle('gemini-zen-mode', stateCache.zenMode);
-        document.body.classList.toggle('gemini-ext-sidebar-bg', !!stateCache.sidebarBg);
-        document.body.classList.toggle('gemini-ext-input-bg', !!stateCache.inputBg && stateCache.glassIntensity === 0);
-        document.body.classList.toggle('gemini-ext-msg-bg', !!stateCache.msgBg);
     }
 
     // === FULL REFRESH (re-fetch from storage, update cache, reapply) ===
